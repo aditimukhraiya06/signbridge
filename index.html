@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SignBridge AI</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1f4fa3">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{--bg:#fafaf9;--card:#fff;--ink:#1b1f27;--mut:#5d6573;--line:#e2e4e8;--blue:#1f4fa3;--bl:#e6efff;--gl:#e5f5ea;--g:#1c7a45;--rl:#ffeee8;--r:#c8401f;--pl:#eee8ff;--p:#6a46c2}
+@media(prefers-color-scheme:dark){:root{--bg:#14161a;--card:#1e2127;--ink:#eef0f4;--mut:#a3abb8;--line:#33373f;--bl:#1b2b4a;--gl:#17301f;--rl:#3a2119;--pl:#2a2145;--blue:#7aa5f5;--g:#6fd09a;--r:#ff8f70;--p:#b79cff}}
+*{box-sizing:border-box}body{margin:0;font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);padding-bottom:72px}
+header{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5}
+header b{font-size:18px}.logo{width:34px;height:34px;border-radius:10px;background:#1f4fa3;color:#fff;display:grid;place-items:center;font-size:18px}
+.sp{flex:1}select,input,textarea,button{font:inherit;color:inherit}
+select,input,textarea{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 10px;width:100%}
+button{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 14px;cursor:pointer;min-height:40px}
+button.pri{background:var(--blue);color:#fff;border-color:var(--blue)}button.dan{background:var(--r);color:#fff;border-color:var(--r)}
+button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+main{max-width:980px;margin:0 auto;padding:16px}section{display:none}section.on{display:block}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.tile{border-radius:16px;padding:18px;text-align:left;border:0;min-height:110px}
+.tile h3{margin:6px 0 2px}.tile span{font-size:14px;color:var(--mut)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}
+.note{font-size:13px;color:var(--mut);background:var(--card);border-left:4px solid #d4a017;padding:8px 10px;border-radius:6px;margin:8px 0}
+.cam{position:relative;background:#000;border-radius:14px;overflow:hidden;aspect-ratio:4/3;max-width:480px}
+.cam video,.cam canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+.big{font-size:44px;font-weight:700;min-height:56px}.log{max-height:220px;overflow:auto;font-size:14px}
+.chip{display:inline-block;padding:4px 10px;border-radius:99px;background:var(--bl);font-size:13px}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--card);border-top:1px solid var(--line);z-index:6}
+nav button{flex:1;border:0;border-radius:0;min-height:60px;font-size:12px;background:none}nav button.on{color:var(--blue);font-weight:700;border-top:3px solid var(--blue)}
+#ov{position:fixed;inset:0;background:#fff;color:#000;display:none;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:24px;z-index:20}
+#ov.on{display:flex}#ov p{font-size:clamp(28px,7vw,64px);font-weight:800;margin:0 0 24px}
+#map{height:340px;border-radius:14px}#arrow{font-size:80px;line-height:1}
+svg text{font:12px system-ui;fill:#222;pointer-events:none}.room{fill:#dfe8f7;stroke:#1f4fa3;cursor:pointer}.room.sel{fill:#ffd9a8}
+</style>
+</head>
+<body>
+<header><div class="logo">✋</div><b>SignBridge AI</b><span class="chip" id="net"></span><div class="sp"></div>
+<select id="lang" style="width:auto" aria-label="Sign language"><option value="ASL">ASL</option><option value="ISL">ISL</option></select></header>
+<main>
+<section id="home" class="on">
+<h1 style="margin:8px 0">Communication without barriers.</h1>
+<p style="color:var(--mut)">One accessibility assistant for communication, learning, emergency support and navigation.</p>
+<div class="grid">
+<button class="tile" style="background:var(--bl)" onclick="go('comm')"><div style="font-size:26px">💬</div><h3>Sign2Sign</h3><span>Live sign, text and speech translation.</span></button>
+<button class="tile" style="background:var(--gl)" onclick="go('learn')"><div style="font-size:26px">🎓</div><h3>SignLearn</h3><span>Practice fingerspelling with camera feedback.</span></button>
+<button class="tile" style="background:var(--rl)" onclick="go('emg')"><div style="font-size:26px">🛡️</div><h3>Emergency</h3><span>Phrases, contacts, location. Works offline.</span></button>
+<button class="tile" style="background:var(--pl)" onclick="go('nav')"><div style="font-size:26px">📍</div><h3>SmartNav</h3><span>Outdoor routes and a demo campus indoor map.</span></button>
+</div>
+<div class="card" style="margin-top:16px"><b>What works today</b>
+<p>Real-time hand tracking (MediaPipe) with a <b>limited ASL fingerspelling demo</b>: A, B, I, L, S, U, V, W, Y and the number 5. It is rule-based on hand landmarks. It is not a full ASL translator and is not trained or evaluated on sentences.</p>
+<p><b>ISL recognition is not enabled.</b> No validated ISL model is configured, so ISL mode does not recognise signs. Text, speech, emergency cards and navigation work in both modes.</p></div>
+</section>
+
+<section id="comm"><h2>Communicate</h2>
+<div class="grid"><div>
+<div class="cam"><video id="vC" playsinline muted></video><canvas id="cC"></canvas></div>
+<div class="row"><button class="pri" id="bC" onclick="toggleCam('C')">Start camera</button><span id="stC" class="chip">Camera off</span></div>
+<div class="big" id="liveC">–</div><div id="confC" style="color:var(--mut)"></div>
+<div class="note" id="noteC"></div></div>
+<div><div class="card"><label for="out"><b>Signed text</b> (edit to correct)</label>
+<textarea id="out" rows="3"></textarea>
+<div class="row"><button onclick="out.value+=' '">Space</button><button onclick="out.value=out.value.slice(0,-1)">Backspace</button><button onclick="out.value=''">Clear</button><button class="pri" onclick="say(out.value)">Speak</button><button onclick="addLog('Me',out.value);out.value=''">Add to chat</button></div>
+<div class="row"><label>Speed <input type="range" id="rate" min=".5" max="1.5" step=".1" value="1" style="width:110px"></label><select id="voice" style="width:auto"></select></div></div>
+<div class="card"><b>Hearing person</b><div class="row"><button id="bM" onclick="mic()">🎤 Start listening</button></div>
+<div class="note" id="noteM"></div></div></div></div>
+<div class="card"><b>Text to fingerspelling</b><input id="fs" placeholder="Type a word" oninput="fspell()"><div id="fsOut" class="row"></div>
+<div class="note">Fingerspelling cards only. Full ASL/ISL sentence translation is not implemented; this does not substitute signs word by word.</div></div>
+<div class="card"><b>Conversation</b><div class="log" id="log"></div><div class="row"><button onclick="exportLog()">Export transcript</button><button onclick="S.hist=[];save();renderLog()">Clear</button></div></div>
+</section>
+
+<section id="learn"><h2>Learn</h2>
+<div class="grid"><div>
+<div class="cam"><video id="vL" playsinline muted></video><canvas id="cL"></canvas></div>
+<div class="row"><button class="pri" id="bL" onclick="toggleCam('L')">Start camera</button><span id="stL" class="chip">Camera off</span></div></div>
+<div class="card"><label for="tgt"><b>Sign to practise</b></label><select id="tgt" onchange="setTarget()"></select>
+<p id="desc"></p><div class="big" id="liveL">–</div><div id="fb" style="min-height:48px"></div>
+<div id="prog"></div></div></div>
+<div class="note">Feedback compares finger positions measured from camera landmarks. It shows visual similarity to a simple reference, not linguistic correctness. Palm orientation and movement are not measured.</div>
+</section>
+
+<section id="emg"><h2>Emergency</h2>
+<div class="note">Works without internet or AI. Nothing is sent automatically; messages open in your own phone or messaging app.</div>
+<div class="grid" id="phr"></div>
+<div class="card"><b>Add your own phrase</b><div class="row"><input id="np" placeholder="e.g. I have a peanut allergy" style="flex:1"><button onclick="addPhrase()">Save</button></div></div>
+<div class="card"><b>Location</b><div class="row"><button onclick="locate()">Get my location</button></div><div id="loc">Not shared. Location is only read when you press the button.</div></div>
+<div class="card"><b>Trusted contacts</b><div class="row"><input id="cn" placeholder="Name" style="flex:1"><input id="cp" placeholder="Phone" type="tel" style="flex:1"><button onclick="addContact()">Add</button></div><div id="cts"></div></div>
+</section>
+
+<section id="nav"><h2>SmartNav</h2>
+<div class="row"><button class="pri" id="tOut" onclick="navMode('out')">Outdoor</button><button id="tIn" onclick="navMode('in')">Indoor (demo campus)</button></div>
+<div id="out2"><div class="row"><input id="q" placeholder="Search destination" style="flex:1"><button onclick="search()">Search</button></div>
+<div class="row" id="fac"></div><div id="map"></div>
+<div class="card" id="turn" style="text-align:center;display:none"><div id="arrow"></div><div class="big" id="tinst" style="font-size:28px"></div><div id="tmeta"></div></div>
+<div id="steps"></div></div>
+<div id="in2" style="display:none"><div class="note">DEMO DATA: a sample campus floor plan, not a real building. There is no live indoor tracking; choose where you are by tapping a room.</div>
+<div class="row"><label>From <select id="from"></select></label><label>To <select id="to"></select></label><button onclick="micNav()">🎤 Say destination</button></div>
+<svg id="plan" viewBox="0 0 600 340" style="width:100%;background:var(--card);border-radius:14px;border:1px solid var(--line)" role="img" aria-label="Demo campus floor plan"></svg>
+<div class="card" style="text-align:center"><div id="iarrow" style="font-size:80px"></div><div class="big" id="iinst" style="font-size:28px"></div><div class="row" style="justify-content:center"><button onclick="istep(-1)">Back</button><button class="pri" onclick="istep(1)">Next step</button></div></div></div>
+</section>
+</main>
+<div id="ov"><p id="ovt"></p><div class="row"><button class="pri" onclick="say(ovt.textContent)">🔊 Speak</button><button onclick="ov.classList.remove('on')">Close</button></div></div>
+<nav><button data-t="home" class="on" onclick="go('home')">🏠<br>Home</button><button data-t="comm" onclick="go('comm')">💬<br>Communicate</button><button data-t="learn" onclick="go('learn')">🎓<br>Learn</button><button data-t="emg" onclick="go('emg')">🛡️<br>Emergency</button><button data-t="nav" onclick="go('nav')">📍<br>Navigate</button></nav>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const $=s=>document.querySelector(s);
+const S=Object.assign({lang:'ASL',contacts:[],phr:[],hist:[],prog:{}},JSON.parse(localStorage.sb||'{}'));
+const save=()=>localStorage.sb=JSON.stringify(S);
+const LN={ASL:'AMERICAN SIGN LANGUAGE',ISL:'INDIAN SIGN LANGUAGE'};
+function go(t){document.querySelectorAll('section').forEach(s=>s.classList.toggle('on',s.id===t));document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));stopCam();if(t==='nav')initMap();scrollTo(0,0)}
+const net=()=>$('#net').textContent=navigator.onLine?'Online':'Offline: emergency tools still work';addEventListener('online',net);addEventListener('offline',net);net();
+$('#lang').value=S.lang;$('#lang').onchange=e=>{S.lang=e.target.value;save();langNote()};
+function langNote(){$('#noteC').textContent=S.lang==='ASL'?'ASL demo: fingerspelling letters only (A B I L S U V W Y, 5). Hold a sign steady for about half a second.':'ISL recognition is not available: no validated ISL model is configured. Use the text, speech and emergency tools.'}langNote();
+
+/* ---- speech ---- */
+function say(t){if(!t||!window.speechSynthesis)return alert('Text to speech is not supported on this device.');speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.rate=+$('#rate').value;const v=speechSynthesis.getVoices().find(v=>v.name===$('#voice').value);if(v)u.voice=v;speechSynthesis.speak(u)}
+function voices(){const s=$('#voice');s.innerHTML=speechSynthesis.getVoices().map(v=>`<option>${v.name}</option>`).join('')}
+if(window.speechSynthesis){speechSynthesis.onvoiceschanged=voices;voices()}
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec;
+function listen(cb,btn){if(!SR){return alert('Speech recognition is not supported in this browser. Try Chrome.')}
+if(rec){rec.stop();rec=null;return}rec=new SR();rec.lang=S.lang==='ISL'?'en-IN':'en-US';rec.interimResults=false;
+rec.onresult=e=>cb(e.results[e.results.length-1][0].transcript);rec.onerror=e=>{$('#noteM').textContent=e.error==='not-allowed'?'Microphone permission denied. Allow it in browser settings.':'Speech error: '+e.error};rec.onend=()=>{rec=null;if(btn)btn.textContent='🎤 Start listening'};rec.start();if(btn)btn.textContent='⏹ Stop'}
+function mic(){listen(t=>addLog('Them',t),$('#bM'))}
+function addLog(w,t){t=(t||'').trim();if(!t)return;S.hist.push({w,t,at:new Date().toISOString()});save();renderLog()}
+function renderLog(){$('#log').innerHTML=S.hist.length?S.hist.map(h=>`<div><small>${new Date(h.at).toLocaleTimeString()}</small> <b>${h.w}:</b> ${h.t.replace(/</g,'&lt;')}</div>`).join(''):'No messages yet.'}renderLog();
+function exportLog(){const b=new Blob([S.hist.map(h=>`[${h.at}] ${h.w}: ${h.t}`).join('\n')],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='signbridge-transcript.txt';a.click()}
+
+/* ---- hand tracking + limited ASL classifier ---- */
+const REF={A:[1,0,0,0,0],S:[0,0,0,0,0],B:[0,1,1,1,1],L:[1,1,0,0,0],U:[0,1,1,0,0],V:[0,1,1,0,0],W:[0,1,1,1,0],Y:[1,0,0,0,1],I:[0,0,0,0,1],'5':[1,1,1,1,1]};
+const DESC={A:'Fist with thumb resting along the side.',S:'Fist with thumb across the front of the fingers.',B:'Four fingers straight up together, thumb folded across the palm.',L:'Thumb and index finger extended, forming an L.',U:'Index and middle fingers up and together.',V:'Index and middle fingers up and spread apart.',W:'Index, middle and ring fingers up and spread.',Y:'Thumb and little finger extended, others curled.',I:'Little finger up, others curled.','5':'All five fingers extended and spread.'};
+const FN=['thumb','index finger','middle finger','ring finger','little finger'];
+const d=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+function measure(lm){const palm=d(lm[0],lm[9]),st=[],ce=[];
+const tr=d(lm[4],lm[5])/palm;st.push(tr>.75?1:0);ce.push(Math.min(1,Math.abs(tr-.75)/.3));
+[[8,6],[12,10],[16,14],[20,18]].forEach(([t,p])=>{const r=d(lm[t],lm[0])/d(lm[p],lm[0]);st.push(r>1.2?1:0);ce.push(Math.min(1,Math.abs(r-1.2)/.3))});
+return{st,conf:ce.reduce((a,b)=>a+b)/5,spread:d(lm[8],lm[12])/palm}}
+function classify(lm){const m=measure(lm);let hit=null;
+for(const k in REF){if(REF[k].every((v,i)=>v===m.st[i])){if(k==='U'&&m.spread>.45)continue;if(k==='V'&&m.spread<=.45)continue;hit=k;break}}
+return{label:hit,conf:m.conf,st:m.st,spread:m.spread}}
+let HL=null,stream=null,cur=null,raf=0,lastT=-1;
+async function initHL(){if(HL)return HL;const V='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';const m=await import(V+'/+esm');const f=await m.FilesetResolver.forVisionTasks(V+'/wasm');
+HL=await m.HandLandmarker.createFromOptions(f,{baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',delegate:'GPU'},runningMode:'VIDEO',numHands:1});return HL}
+async function toggleCam(v){if(cur===v){stopCam();return}stopCam();
+if(v==='C'&&S.lang==='ISL'){$('#stC').textContent='ISL model not configured';return}
+const st=$('#st'+v);st.textContent='Loading hand model…';
+try{await initHL();stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:640,height:480}})}
+catch(e){st.textContent=e.name==='NotAllowedError'?'Camera permission denied. Allow camera access and retry.':'Camera or model unavailable: '+e.message;return}
+const vid=$('#v'+v);vid.srcObject=stream;await vid.play();cur=v;$('#b'+v).textContent='Stop camera';st.textContent='Tracking';loop()}
+function stopCam(){cancelAnimationFrame(raf);if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;if(cur){$('#b'+cur).textContent='Start camera';$('#st'+cur).textContent='Camera off'}cur=null;cand=null;n=0}
+let cand=null,n=0;
+function loop(){if(!cur)return;const vid=$('#v'+cur),cv=$('#c'+cur);
+if(vid.currentTime!==lastT&&vid.videoWidth){lastT=vid.currentTime;cv.width=vid.videoWidth;cv.height=vid.videoHeight;const cx=cv.getContext('2d');cx.clearRect(0,0,cv.width,cv.height);
+const r=HL.detectForVideo(vid,performance.now());
+if(r.landmarks.length){const lm=r.landmarks[0];cx.fillStyle='#3df59a';lm.forEach(p=>{cx.beginPath();cx.arc(p.x*cv.width,p.y*cv.height,4,0,7);cx.fill()});onHand(classify(lm))}else onHand(null)}
+raf=requestAnimationFrame(loop)}
+function onHand(r){if(cur==='C')commHand(r);else learnHand(r)}
+function commHand(r){const L=$('#liveC');if(!r){L.textContent='No hand';$('#confC').textContent='';cand=null;n=0;return}
+if(!r.label){L.textContent='?';$('#confC').textContent='Unrecognised sign (not in demo vocabulary)';cand=null;n=0;return}
+L.textContent=r.label;$('#confC').textContent='Confidence '+Math.round(r.conf*100)+'% (landmark rules, demo)';
+if(r.label===cand)n++;else{cand=r.label;n=1}
+if(n===15){if(r.conf>=.5)$('#out').value+=r.label;else $('#confC').textContent='Low confidence, not added. Hold the sign clearer or type it.';n=-15}}
+
+/* ---- text to fingerspelling ---- */
+function fspell(){$('#fsOut').innerHTML=[...$('#fs').value.toUpperCase()].filter(c=>c!==' ').map(c=>`<div class="card" style="width:140px;margin:0" title="${DESC[c]||''}"><div class="big" style="font-size:32px;min-height:0">${c.replace(/</g,'')}</div><small>${DESC[c]||'Description not in demo set'}</small></div>`).join('')}
+
+/* ---- learn ---- */
+$('#tgt').innerHTML=Object.keys(REF).map(k=>`<option>${k}</option>`).join('');
+function setTarget(){const t=$('#tgt').value;$('#desc').textContent=DESC[t];$('#fb').textContent='';renderProg()}
+function renderProg(){const k=S.lang+':'+$('#tgt').value,p=S.prog[k]||{ok:0,tries:0};$('#prog').innerHTML=`<span class="chip">${S.lang} ${$('#tgt').value}: ${p.ok} matched of ${p.tries} attempts</span>`}
+let ln=0,lc=null;
+function learnHand(r){const T=$('#tgt').value,L=$('#liveL'),fb=$('#fb');
+if(S.lang==='ISL'){fb.textContent='Practice feedback is only available for the ASL demo set.';return}
+if(!r){L.textContent='No hand';return}L.textContent=r.label||'?';
+const ex=REF[T],bad=ex.map((v,i)=>v!==r.st[i]?i:-1).filter(i=>i>=0);let msg;
+if(!bad.length){msg=((T==='U'||T==='V')&&r.label&&r.label!==T)?(T==='V'?'Fingers are right. Spread index and middle apart.':'Fingers are right. Keep index and middle together.'):'Finger positions match the reference ('+Math.round(r.conf*100)+'% visual similarity).'}
+else msg='Adjust: '+bad.map(i=>(ex[i]?'extend ':'curl ')+FN[i]).join(', ')+'.';
+fb.textContent=msg;const key=r.label+'|'+bad.length;if(key===lc)ln++;else{lc=key;ln=1}
+if(ln===20){const k=S.lang+':'+T,p=S.prog[k]||(S.prog[k]={ok:0,tries:0});p.tries++;if(!bad.length)p.ok++;save();renderProg();ln=-20}}
+setTarget();
+
+/* ---- emergency ---- */
+const BASE=['I need medical assistance.','Please call an ambulance.','I am unable to speak.','I need help immediately.','I am lost.','Please contact my emergency contact.','I need an interpreter.','Please call the police.','There is a fire. Please call the fire service.'];
+function renderPhr(){const all=[...BASE,...S.phr];$('#phr').innerHTML=`<button class="tile" style="background:var(--rl)" data-i="-1"><h3>I am deaf</h3><span>Full-screen card with your sign language</span></button>`+all.map((p,i)=>`<button class="tile" style="background:var(--rl)" data-i="${i}"><h3>${p}</h3><span>Show full screen</span></button>`).join('');
+document.querySelectorAll('#phr .tile').forEach(b=>b.onclick=()=>{const i=+b.dataset.i;card(i<0?`I AM DEAF. I COMMUNICATE USING ${LN[S.lang]}. PLEASE HELP ME CONTACT EMERGENCY SERVICES.`:all[i].toUpperCase())})}
+function card(t){$('#ovt').textContent=t;$('#ov').classList.add('on')}
+function addPhrase(){const v=$('#np').value.trim();if(!v)return;S.phr.push(v);save();$('#np').value='';renderPhr()}
+let here=null;
+function locate(){const o=$('#loc');o.textContent='Locating…';navigator.geolocation.getCurrentPosition(p=>{here=p.coords;o.innerHTML=`Lat ${here.latitude.toFixed(5)}, Lon ${here.longitude.toFixed(5)} (±${Math.round(here.accuracy)} m)<br><a target="_blank" rel="noopener" href="${link()}">Open in OpenStreetMap</a>${navigator.share?' <button onclick="shareLoc()">Share…</button>':''}`;renderCts()},e=>o.textContent=e.code===1?'Location permission denied. Allow it in browser settings.':'Could not get location: '+e.message,{enableHighAccuracy:true,timeout:15000})}
+const link=()=>`https://www.openstreetmap.org/?mlat=${here.latitude}&mlon=${here.longitude}#map=18/${here.latitude}/${here.longitude}`;
+const shareLoc=()=>navigator.share({title:'My location',text:'I am deaf and need help. My location:',url:link()});
+function addContact(){const n=$('#cn').value.trim(),p=$('#cp').value.trim();if(!n||!p)return;S.contacts.push({n,p});save();$('#cn').value=$('#cp').value='';renderCts()}
+function renderCts(){$('#cts').innerHTML=S.contacts.length?S.contacts.map((c,i)=>`<div class="row"><b style="flex:1">${c.n.replace(/</g,'&lt;')}</b><a href="tel:${encodeURIComponent(c.p)}"><button>Call</button></a><a href="sms:${encodeURIComponent(c.p)}?body=${encodeURIComponent('I am deaf and need help.'+(here?' My location: '+link():''))}"><button>Message</button></a><button onclick="S.contacts.splice(${i},1);save();renderCts()">Remove</button></div>`).join(''):'No contacts yet. Add someone you trust.'}
+renderPhr();renderCts();
+
+/* ---- SmartNav outdoor (real OSM, Nominatim, OSRM, Overpass) ---- */
+let map,me,meM,dest,line,route,si=0,wid,lay;
+function navMode(m){$('#out2').style.display=m==='out'?'':'none';$('#in2').style.display=m==='in'?'':'none';$('#tOut').className=m==='out'?'pri':'';$('#tIn').className=m==='in'?'pri':'';if(m==='out')setTimeout(()=>map&&map.invalidateSize(),50)}
+function initMap(){if(map)return;map=L.map('map').setView([28.47,77.5],13);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors',maxZoom:19}).addTo(map);lay=L.layerGroup().addTo(map);
+if(navigator.geolocation)wid=navigator.geolocation.watchPosition(p=>{me=[p.coords.latitude,p.coords.longitude];if(!meM){meM=L.circleMarker(me,{radius:8}).addTo(map);map.setView(me,16)}else meM.setLatLng(me);track()},e=>{$('#steps').innerHTML='<div class="note">Location unavailable ('+(e.code===1?'permission denied':e.message)+'). You can still search and view routes from the map centre.</div>'},{enableHighAccuracy:true})}
+$('#fac').innerHTML=[['hospital','🏥'],['pharmacy','💊'],['police','👮'],['atm','🏧'],['restaurant','🍴'],['toilets','🚻']].map(([k,i])=>`<button onclick="fac('${k}')">${i} ${k}</button>`).join('');
+async function fac(k){const c=me?L.latLng(me):map.getCenter();lay.clearLayers();
+try{const r=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:`[out:json][timeout:20];nwr(around:1500,${c.lat},${c.lng})[amenity=${k}];out center 25;`});const j=await r.json();
+if(!j.elements.length)return alert('No '+k+' found within 1.5 km in OpenStreetMap.');
+j.elements.forEach(e=>{const la=e.lat||e.center.lat,lo=e.lon||e.center.lon;L.marker([la,lo]).addTo(lay).bindPopup(`<b>${(e.tags.name||k).replace(/</g,'')}</b><br><a href="#" onclick="routeTo(${la},${lo});return false">Route here</a>`)})}catch(e){alert('Could not load facilities. Check your connection.')}}
+async function search(){const q=$('#q').value.trim();if(!q)return;try{const b=map.getBounds();const r=await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=5&q='+encodeURIComponent(q)+(me?`&viewbox=${b.getWest()},${b.getNorth()},${b.getEast()},${b.getSouth()}`:''));const j=await r.json();if(!j.length)return alert('No results for "'+q+'".');lay.clearLayers();j.forEach(x=>L.marker([+x.lat,+x.lon]).addTo(lay).bindPopup(`${x.display_name.replace(/</g,'')}<br><a href="#" onclick="routeTo(${x.lat},${x.lon});return false">Route here</a>`));map.setView([+j[0].lat,+j[0].lon],15)}catch(e){alert('Search needs an internet connection.')}}
+async function routeTo(la,lo){if(!me)return alert('Your location is needed to start a route. Allow location access first.');dest=[la,lo];
+try{const r=await fetch(`https://router.project-osrm.org/route/v1/foot/${me[1]},${me[0]};${lo},${la}?steps=true&geometries=geojson&overview=full`);const j=await r.json();if(j.code!=='Ok')throw 0;route=j.routes[0];si=0;
+if(line)line.remove();line=L.geoJSON(route.geometry).addTo(map);map.fitBounds(line.getBounds());$('#turn').style.display='';
+$('#steps').innerHTML=`<div class="card"><b>${Math.round(route.distance)} m, about ${Math.round(route.duration/60)} min walking</b>`+route.legs[0].steps.map(s=>'<div>'+stepText(s)+'</div>').join('')+'</div>';show()}catch(e){alert('Could not get a route. Try again with a connection.')}}
+const AR={left:'⬅️','sharp left':'↙️','slight left':'↖️',right:'➡️','sharp right':'↘️','slight right':'↗️',straight:'⬆️',uturn:'↩️'};
+const stepText=s=>{const m=s.maneuver,mod=m.modifier||'straight';return m.type==='arrive'?'You have arrived':(m.type==='depart'?'Head ':'Turn ')+mod.toUpperCase()+(s.name?' onto '+s.name:'')+' ('+Math.round(s.distance)+' m)'};
+function show(){const st=route.legs[0].steps,s=st[Math.min(si+1,st.length-1)],cur=st[si];if(!s)return;const t=s.maneuver.type==='arrive';
+$('#arrow').textContent=t?'🏁':AR[s.maneuver.modifier]||'⬆️';const dd=me?Math.round(L.latLng(me).distanceTo([s.maneuver.location[1],s.maneuver.location[0]])):Math.round(cur.distance);
+$('#tinst').textContent=t?`ARRIVE in ${dd} m`:`${(s.maneuver.modifier||'straight').toUpperCase()} in ${dd} m`;$('#tmeta').textContent='Step '+(si+1)+' of '+st.length}
+function track(){if(!route||!me)return;const st=route.legs[0].steps,pts=route.geometry.coordinates;
+const off=Math.min(...pts.map(p=>L.latLng(me).distanceTo([p[1],p[0]])));if(off>60){routeTo(dest[0],dest[1]);return}
+const nx=st[si+1];if(nx){const dm=L.latLng(me).distanceTo([nx.maneuver.location[1],nx.maneuver.location[0]]);if(dm<20){navigator.vibrate&&navigator.vibrate(200);if(si<st.length-2)si++}}show()}
+
+/* ---- Indoor demo campus (DEMO DATA) ---- */
+const RM=[['Reception',25,20,110,120],['Class 101',145,20,110,120],['Class 102',265,20,110,120],['Medical Room',385,20,110,120],['Exit A',505,20,70,120],['Washroom',25,210,110,110],['Lift',145,210,110,110],['Cafeteria',265,210,190,110],['Exit B',475,210,100,110]].map(([n,x,y,w,h])=>({n,x,y,w,h,cx:x+w/2,cy:y+h/2}));
+$('#from').innerHTML=$('#to').innerHTML=RM.map((r,i)=>`<option value="${i}">${r.n}</option>`).join('');$('#to').value=3;
+function plan(){$('#plan').innerHTML=`<rect x="20" y="150" width="560" height="40" fill="#f3f3f3" stroke="#aaa"/>`+RM.map((r,i)=>`<g onclick="$('#from').value=${i};iroute()"><rect class="room${+$('#to').value===i?' sel':''}" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" rx="6"/><text x="${r.cx}" y="${r.cy}" text-anchor="middle">${r.n}</text></g>`).join('')+(ipath.length?`<polyline points="${ipath.map(p=>p.join(',')).join(' ')}" fill="none" stroke="#c8401f" stroke-width="4" stroke-dasharray="8 4"/>`:'')}
+let ipath=[],isteps=[],ii=0;
+$('#from').onchange=$('#to').onchange=()=>iroute();
+function iroute(){const a=RM[+$('#from').value],b=RM[+$('#to').value];if(a===b){ipath=[];isteps=[{t:'You are already there',a:'🏁'}];ii=0;plan();ishow();return}
+const raw=[[a.cx,a.cy],[a.cx,170],[b.cx,170],[b.cx,b.cy]];ipath=raw.filter((p,i)=>!i||p[0]!==raw[i-1][0]||p[1]!==raw[i-1][1]);
+isteps=[];for(let i=1;i<ipath.length;i++){const v=[ipath[i][0]-ipath[i-1][0],ipath[i][1]-ipath[i-1][1]],m=Math.round(Math.hypot(...v)*.1);
+let turn='STRAIGHT',ar='⬆️';if(i>1){const u=[ipath[i-1][0]-ipath[i-2][0],ipath[i-1][1]-ipath[i-2][1]],c=u[0]*v[1]-u[1]*v[0];if(c>0){turn='RIGHT';ar='➡️'}else if(c<0){turn='LEFT';ar='⬅️'}}
+isteps.push({t:(i===1?'Leave '+a.n+' and go to the corridor, ':'Turn '+turn+', ')+'walk '+m+' m',a:ar})}
+isteps.push({t:'ARRIVE: '+b.n,a:'🏁'});ii=0;plan();ishow()}
+const ishow=()=>{const s=isteps[ii]||{t:'Choose a destination',a:''};$('#iarrow').textContent=s.a;$('#iinst').textContent=s.t;if(navigator.vibrate&&ii>0)navigator.vibrate(120)};
+const istep=d=>{ii=Math.max(0,Math.min(isteps.length-1,ii+d));ishow()};
+function micNav(){listen(t=>{const s=t.toLowerCase(),i=RM.findIndex(r=>s.includes(r.n.toLowerCase())||(r.n==='Washroom'&&/toilet|restroom|bathroom/.test(s))||(r.n==='Lift'&&s.includes('elevator'))||(r.n==='Medical Room'&&/medical|doctor|clinic/.test(s)));if(i<0)alert('Heard "'+t+'" but found no matching place in the demo campus.');else{$('#to').value=i;iroute()}})}
+iroute();
+if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js'));
+</script>
+</body></html>
