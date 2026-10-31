@@ -70,7 +70,7 @@ svg text{font:12px system-ui;fill:#241a3a;pointer-events:none}.room{fill:#e5dcff
 <textarea id="out" rows="3"></textarea>
 <div class="row"><button onclick="out.value+=' '">Space</button><button onclick="out.value=out.value.slice(0,-1)">Backspace</button><button onclick="out.value=''">Clear</button><button class="pri" onclick="say(out.value)">Speak</button><button onclick="addLog('Me',out.value);out.value=''">Add to chat</button></div>
 <div class="row"><label>Speed <input type="range" id="rate" min=".5" max="1.5" step=".1" value="1" style="width:110px"></label><select id="voice" style="width:auto"></select></div></div>
-<div class="card"><b>🧠 Teach the app your signs</b><p style="font-size:14px;margin:4px 0">Start the camera, pick a letter, press Record and hold that sign steady while tilting your hand slightly. Repeat for each letter. Samples stay on this device, separately for ASL and ISL.</p><div class="row"><select id="tl" style="width:90px"></select><button class="pri" onclick="startTeach()">⏺ Record</button><button onclick="clearTeach()">Clear</button></div><div id="tc" style="font-size:13px;color:var(--mut)"></div></div>
+<div class="card"><b>🧠 Teach the app your signs</b><p style="font-size:14px;margin:4px 0">Start the camera, pick a letter, press Record and hold that sign steady while tilting your hand slightly. Repeat for each letter. Samples stay on this device, separately for ASL and ISL.</p><div class="row"><select id="tl" style="width:90px"></select><button class="pri" onclick="guided()">🎓 Teach A–Z (guided)</button><button onclick="startTeach()">⏺ Record one letter</button><button onclick="clearTeach()">Clear</button></div><div id="tc" style="font-size:13px;color:var(--mut)"></div></div>
 <div class="card"><b>Hearing person</b><div class="row"><button id="bM" onclick="mic()">🎤 Start listening</button></div>
 <div class="note" id="noteM"></div></div></div></div>
 <div class="card"><b>Text to fingerspelling</b><input id="fs" placeholder="Type a word" oninput="fspell()"><div id="fsOut" class="row"></div>
@@ -145,7 +145,7 @@ const ang=(a,b,c)=>{const u=[a.x-b.x,a.y-b.y,a.z-b.z],v=[c.x-b.x,c.y-b.y,c.z-b.z
 /* w = MediaPipe WORLD landmarks (metres, true 3D, no camera-aspect distortion) */
 function measure(w){const palm=d3(w[0],w[9]),st=[],ce=[],tD=d3(w[4],w[5])/palm;st.push(tD>.75?1:0);ce.push(Math.min(1,Math.abs(tD-.75)/.25));
 for(const m of[5,9,13,17]){const s=(ang(w[m],w[m+1],w[m+2])+ang(w[m+1],w[m+2],w[m+3]))/2;st.push(s>140?1:0);ce.push(Math.min(1,Math.abs(s-140)/25))}
-return{st,conf:ce.reduce((a,b)=>a+b)/5,spread:d3(w[8],w[12])/palm}}
+return{st,conf:ce.reduce((a,b)=>a+b)/5,spread:d3(w[8],w[12])/palm,tm:d3(w[4],w[10])/palm}}
 const feat=w=>{const p=d3(w[0],w[9])+1e-9;return w.flatMap(q=>[(q.x-w[0].x)/p,(q.y-w[0].y)/p,(q.z-w[0].z)/p])};
 let SAMP=JSON.parse(localStorage.sbs||'[]');
 function knn(f){const ss=SAMP.filter(s=>s.lg===S.lang);if(ss.length<2)return null;
@@ -154,6 +154,7 @@ const[l,n]=Object.entries(vote).sort((a,b)=>b[1]-a[1])[0],md=ds.filter(x=>x.l===
 return md>1.2?{label:null,conf:0}:{label:l,conf:(n/ds.length)*Math.max(0,1-md/1.2)}}
 function classify(lm,w){const m=measure(w),k=knn(feat(w));if(k)return{...k,st:m.st};
 if(S.lang!=='ASL')return{label:null,conf:0,st:m.st};let hit=null;
+if(!m.st[1]&&!m.st[2]&&!m.st[3]&&!m.st[4])return{label:m.tm<.55?'S':'A',conf:m.conf,st:m.st};
 for(const c in REF){if(REF[c].every((v,i)=>v===m.st[i])){if(c==='U'&&m.spread>.5)continue;if(c==='V'&&m.spread<=.5)continue;hit=c;break}}
 return{label:hit,conf:m.conf,st:m.st}}
 let HL=null,stream=null,cur=null,raf=0,lastT=-1;
@@ -174,7 +175,7 @@ raf=requestAnimationFrame(loop)}
 function onHand(r,w,res){if(teach&&w)teachFrame(w);if(cur==='C'){if(teach)return;$('#mode').value==='words'?wordStep(res):commHand(r)}else learnHand(r)}
 function commHand(r){const L=$('#liveC');if(!r){L.textContent='No hand';$('#confC').textContent='';cand=null;n=0;return}
 if(!r.label){L.textContent='?';$('#confC').textContent=SAMP.some(s=>s.lg===S.lang)||S.lang==='ASL'?'Not recognised. Teach this sign in the Teach panel.':'No '+S.lang+' signs taught yet. Use the Teach panel.';cand=null;n=0;return}
-L.textContent=r.label;$('#confC').textContent='Confidence '+Math.round(r.conf*100)+'% ('+(SAMP.some(s=>s.lg===S.lang)?'your taught samples':'rough built-in rules')+')';
+L.textContent=r.label;$('#confC').textContent='Confidence '+Math.round(r.conf*100)+'% ('+(SAMP.some(s=>s.lg===S.lang)?'your taught samples':'rough built-in rules')+')  Fingers T-I-M-R-P: '+r.st.join('');
 if(r.label===cand)n++;else{cand=r.label;n=1}
 if(n===15){if(r.conf>=.5)$('#out').value+=r.label;else $('#confC').textContent='Low confidence, not added. Hold the sign clearer or type it.';n=-15}}
 /* teach mode: record your own samples (stored on this device) */
@@ -182,6 +183,10 @@ let teach=null;const tcount=()=>{const c={};SAMP.filter(s=>s.lg===S.lang).forEac
 $('#tl').innerHTML=[...'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'].map(k=>`<option>${k}</option>`).join('');tcount();
 function startTeach(){if(cur!=='C')return alert('Start the camera first.');teach={l:$('#tl').value,n:20,k:0};$('#tc').textContent='Recording '+teach.l+'… keep your hand in view'}
 function teachFrame(w){if(++teach.k%3)return;SAMP.push({l:teach.l,lg:S.lang,f:feat(w).map(v=>+v.toFixed(3))});if(--teach.n<=0){localStorage.sbs=JSON.stringify(SAMP);teach=null;tcount()}}
+async function guided(){if(cur!=='C')return alert('Start the camera first.');const wait=t=>new Promise(r=>setTimeout(r,t));
+for(const l of[...'ABCDEFGHIKLMNOPQRSTUVWXY']){$('#tl').value=l;for(let c=3;c>0&&cur==='C';c--){$('#tc').textContent='➡️ Show the sign for  '+l+'  in '+c+'…  (hold it steady, tilt slightly)';await wait(1000)}
+if(cur!=='C')return;teach={l,n:20,k:0};while(teach){await wait(100);if(cur!=='C')return}}
+$('#tc').textContent='✅ Done! J and Z need movement, so they are not included. Try your letters now.';tcount()}
 function clearTeach(){if(confirm('Delete all taught samples for '+S.lang+'?')){SAMP=SAMP.filter(s=>s.lg!==S.lang);localStorage.sbs=JSON.stringify(SAMP);tcount()}}
 /* word recognition: needs models/<lang>/model.onnx + labels.json from the Colab notebook */
 const WM={},OR='https://cdn.jsdelivr.net/npm/onnxruntime-web@1.18.0/dist/';let buf=[],fr=0,lastW=0;
