@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SignBridge AI</title>
+<title>Sign Your Way</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1f4fa3">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -45,7 +45,7 @@ svg text{font:12px system-ui;fill:#241a3a;pointer-events:none}.room{fill:#e5dcff
 </style>
 </head>
 <body>
-<header><div class="logo">✋</div><b>SignBridge AI</b><span class="chip" id="net"></span><div class="sp"></div>
+<header><div class="logo">✋</div><b>Sign Your Way</b><span class="chip" id="net"></span><div class="sp"></div>
 <button id="th" aria-label="Toggle dark mode" style="min-height:36px">🌙</button><select id="lang" style="width:auto" aria-label="Sign language"><option value="ASL">ASL</option><option value="ISL">ISL</option></select></header>
 <main>
 <section id="home" class="on">
@@ -99,7 +99,7 @@ svg text{font:12px system-ui;fill:#241a3a;pointer-events:none}.room{fill:#e5dcff
 <section id="nav"><h2>SmartNav</h2>
 <div class="row"><button class="pri" id="tOut" onclick="navMode('out')">Outdoor</button><button id="tIn" onclick="navMode('in')">Indoor (demo campus)</button></div>
 <div id="out2"><div class="row"><input id="q" placeholder="Search destination" style="flex:1"><button onclick="search()">Search</button></div>
-<p style="margin:4px 0"><b>Need something nearby?</b> Tap a button. SignBridge finds the closest one on OpenStreetMap and shows big arrows to walk there. Use it outdoors on your phone with location on.</p><div class="row" id="fac"></div><div id="map"></div>
+<p style="margin:4px 0"><b>Need something nearby?</b> Tap a button. Sign Your Way finds the closest one on OpenStreetMap and shows big arrows to walk there. Use it outdoors on your phone with location on.</p><div class="row" id="fac"></div><div id="map"></div>
 <div class="card" id="turn" style="text-align:center;display:none"><div id="arrow"></div><div class="big" id="tinst" style="font-size:28px"></div><div id="tmeta"></div></div>
 <div id="steps"></div></div>
 <div id="in2" style="display:none"><div class="note">DEMO DATA: a sample campus floor plan, not a real building. There is no live indoor tracking; choose where you are by tapping a room.</div>
