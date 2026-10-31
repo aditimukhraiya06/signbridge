@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -8,38 +8,45 @@
 <meta name="theme-color" content="#1f4fa3">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
-:root{--bg:#fafaf9;--card:#fff;--ink:#1b1f27;--mut:#5d6573;--line:#e2e4e8;--blue:#1f4fa3;--bl:#e6efff;--gl:#e5f5ea;--g:#1c7a45;--rl:#ffeee8;--r:#c8401f;--pl:#eee8ff;--p:#6a46c2}
-@media(prefers-color-scheme:dark){:root{--bg:#14161a;--card:#1e2127;--ink:#eef0f4;--mut:#a3abb8;--line:#33373f;--bl:#1b2b4a;--gl:#17301f;--rl:#3a2119;--pl:#2a2145;--blue:#7aa5f5;--g:#6fd09a;--r:#ff8f70;--p:#b79cff}}
-*{box-sizing:border-box}body{margin:0;font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);padding-bottom:72px}
-header{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5}
-header b{font-size:18px}.logo{width:34px;height:34px;border-radius:10px;background:#1f4fa3;color:#fff;display:grid;place-items:center;font-size:18px}
+:root{--bg:#fff4fb;--bg2:#e9f4ff;--card:#fff;--ink:#241a3a;--mut:#6b5f86;--line:#eadcf7;--blue:#6c3df5;--bl:linear-gradient(135deg,#6c3df5,#3da5ff);--gl:linear-gradient(135deg,#12c28a,#a3e635);--rl:linear-gradient(135deg,#ff4d6d,#ff9a3d);--pl:linear-gradient(135deg,#d946ef,#6c3df5)}
+[data-theme=dark]{--bg:#150f2b;--bg2:#0f1a3a;--card:#241b45;--ink:#f6efff;--mut:#b9a9de;--line:#3b2f6b;--blue:#a78bfa;--bl:linear-gradient(135deg,#5b36d9,#2563eb);--gl:linear-gradient(135deg,#0d9f72,#65a30d);--rl:linear-gradient(135deg,#e11d48,#ea580c);--pl:linear-gradient(135deg,#a21caf,#5b36d9)}
+*{box-sizing:border-box}body{margin:0;font:16px/1.5 "Segoe UI",system-ui,-apple-system,sans-serif;background:linear-gradient(160deg,var(--bg),var(--bg2)) fixed;color:var(--ink);padding-bottom:76px}
+header{display:flex;align-items:center;gap:10px;padding:12px 16px;position:sticky;top:0;z-index:5;background:var(--card);box-shadow:0 4px 20px #6c3df522}
+header b{font-size:19px;background:linear-gradient(90deg,#6c3df5,#ff4d6d);-webkit-background-clip:text;background-clip:text;color:transparent}
+.logo{width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,#6c3df5,#ff4d6d);color:#fff;display:grid;place-items:center;font-size:19px;animation:wave 2.5s infinite}
+@keyframes wave{0%,60%,100%{transform:none}70%{transform:rotate(18deg)}80%{transform:rotate(-12deg)}90%{transform:rotate(14deg)}}
+@keyframes pop{from{transform:scale(.97);opacity:0}to{transform:none;opacity:1}}@keyframes bob{50%{transform:translateY(-5px)}}
 .sp{flex:1}select,input,textarea,button{font:inherit;color:inherit}
-select,input,textarea{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 10px;width:100%}
-button{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 14px;cursor:pointer;min-height:40px}
-button.pri{background:var(--blue);color:#fff;border-color:var(--blue)}button.dan{background:var(--r);color:#fff;border-color:var(--r)}
-button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
-main{max-width:980px;margin:0 auto;padding:16px}section{display:none}section.on{display:block}
-.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
-.tile{border-radius:16px;padding:18px;text-align:left;border:0;min-height:110px}
-.tile h3{margin:6px 0 2px}.tile span{font-size:14px;color:var(--mut)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+select,input,textarea{background:var(--card);border:2px solid var(--line);border-radius:12px;padding:8px 10px;width:100%}
+button{background:var(--card);border:2px solid var(--line);border-radius:12px;padding:8px 14px;cursor:pointer;min-height:42px;font-weight:600;transition:transform .15s,box-shadow .15s}
+button:hover{transform:translateY(-2px);box-shadow:0 6px 16px #6c3df533}
+button.pri{background:linear-gradient(135deg,#6c3df5,#3da5ff);color:#fff;border-color:transparent}button.dan{background:linear-gradient(135deg,#ff4d6d,#ff9a3d);color:#fff;border-color:transparent}
+button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #ff9a3d;outline-offset:2px}
+main{max-width:980px;margin:0 auto;padding:16px}section{display:none}section.on{display:block;animation:pop .3s}
+h1,h2{background:linear-gradient(90deg,#6c3df5,#ff4d6d,#ff9a3d);-webkit-background-clip:text;background-clip:text;color:transparent}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.tile{color:#fff;border-radius:20px;padding:18px;text-align:left;border:0;min-height:120px;box-shadow:0 8px 24px #6c3df533}
+.tile:hover{transform:translateY(-4px) rotate(-.6deg) scale(1.02)}.tile>div:first-child{font-size:34px;animation:bob 3s infinite}
+.tile h3{margin:6px 0 2px}.tile span{color:#ffffffe6;font-size:14px;font-weight:500}
+.card{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 4px 16px #6c3df514}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}
-.note{font-size:13px;color:var(--mut);background:var(--card);border-left:4px solid #d4a017;padding:8px 10px;border-radius:6px;margin:8px 0}
-.cam{position:relative;background:#000;border-radius:14px;overflow:hidden;aspect-ratio:4/3;max-width:480px}
+.note{font-size:13px;color:var(--mut);background:var(--card);border-left:5px solid #ff9a3d;padding:8px 10px;border-radius:8px;margin:8px 0}
+.cam{position:relative;background:#000;border-radius:18px;overflow:hidden;aspect-ratio:4/3;max-width:480px;border:3px solid #6c3df5}
 .cam video,.cam canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
-.big{font-size:44px;font-weight:700;min-height:56px}.log{max-height:220px;overflow:auto;font-size:14px}
-.chip{display:inline-block;padding:4px 10px;border-radius:99px;background:var(--bl);font-size:13px}
-nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--card);border-top:1px solid var(--line);z-index:6}
-nav button{flex:1;border:0;border-radius:0;min-height:60px;font-size:12px;background:none}nav button.on{color:var(--blue);font-weight:700;border-top:3px solid var(--blue)}
+.big{font-size:44px;font-weight:800;min-height:56px;color:var(--blue)}.log{max-height:220px;overflow:auto;font-size:14px}
+.chip{display:inline-block;padding:4px 12px;border-radius:99px;background:linear-gradient(90deg,#6c3df522,#ff4d6d22);border:1px solid var(--line);font-size:13px;font-weight:600}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--card);border-top:3px solid #6c3df5;z-index:6}
+nav button{flex:1;border:0;border-radius:0;min-height:62px;font-size:12px;background:none;box-shadow:none}nav button.on{color:var(--blue);background:linear-gradient(180deg,#6c3df526,transparent)}
 #ov{position:fixed;inset:0;background:#fff;color:#000;display:none;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:24px;z-index:20}
 #ov.on{display:flex}#ov p{font-size:clamp(28px,7vw,64px);font-weight:800;margin:0 0 24px}
-#map{height:340px;border-radius:14px}#arrow{font-size:80px;line-height:1}
-svg text{font:12px system-ui;fill:#222;pointer-events:none}.room{fill:#dfe8f7;stroke:#1f4fa3;cursor:pointer}.room.sel{fill:#ffd9a8}
+#map{height:380px;border-radius:18px;border:3px solid #6c3df5}#arrow{font-size:80px;line-height:1}
+svg text{font:12px system-ui;fill:#241a3a;pointer-events:none}.room{fill:#e5dcff;stroke:#6c3df5;cursor:pointer}.room.sel{fill:#ffd166}#plan{background:#fff!important}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
 <header><div class="logo">✋</div><b>SignBridge AI</b><span class="chip" id="net"></span><div class="sp"></div>
-<select id="lang" style="width:auto" aria-label="Sign language"><option value="ASL">ASL</option><option value="ISL">ISL</option></select></header>
+<button id="th" aria-label="Toggle dark mode" style="min-height:36px">🌙</button><select id="lang" style="width:auto" aria-label="Sign language"><option value="ASL">ASL</option><option value="ISL">ISL</option></select></header>
 <main>
 <section id="home" class="on">
 <h1 style="margin:8px 0">Communication without barriers.</h1>
@@ -50,21 +57,20 @@ svg text{font:12px system-ui;fill:#222;pointer-events:none}.room{fill:#dfe8f7;st
 <button class="tile" style="background:var(--rl)" onclick="go('emg')"><div style="font-size:26px">🛡️</div><h3>Emergency</h3><span>Phrases, contacts, location. Works offline.</span></button>
 <button class="tile" style="background:var(--pl)" onclick="go('nav')"><div style="font-size:26px">📍</div><h3>SmartNav</h3><span>Outdoor routes and a demo campus indoor map.</span></button>
 </div>
-<div class="card" style="margin-top:16px"><b>What works today</b>
-<p>Real-time hand tracking (MediaPipe) with a <b>limited ASL fingerspelling demo</b>: A, B, I, L, S, U, V, W, Y and the number 5. It is rule-based on hand landmarks. It is not a full ASL translator and is not trained or evaluated on sentences.</p>
-<p><b>ISL recognition is not enabled.</b> No validated ISL model is configured, so ISL mode does not recognise signs. Text, speech, emergency cards and navigation work in both modes.</p></div>
+<div class="card" style="margin-top:16px"><b>What works today</b><p>Hand tracking runs on your camera. <b>Letters:</b> teach the app your own hand shapes (A–Z) in Communicate → Teach. <b>Words:</b> switch to Words mode after you train a model with the Colab notebook and upload the <code>models/</code> folder. No model means no words; nothing is faked.</p><p>ASL and ISL each have their own samples and their own model.</p></div>
 </section>
 
 <section id="comm"><h2>Communicate</h2>
 <div class="grid"><div>
 <div class="cam"><video id="vC" playsinline muted></video><canvas id="cC"></canvas></div>
-<div class="row"><button class="pri" id="bC" onclick="toggleCam('C')">Start camera</button><span id="stC" class="chip">Camera off</span></div>
+<div class="row"><select id="mode" style="width:auto" onchange="buf=[]"><option value="letters">Letters</option><option value="words">Words (needs model)</option></select><button class="pri" id="bC" onclick="toggleCam('C')">Start camera</button><span id="stC" class="chip">Camera off</span></div>
 <div class="big" id="liveC">–</div><div id="confC" style="color:var(--mut)"></div>
 <div class="note" id="noteC"></div></div>
 <div><div class="card"><label for="out"><b>Signed text</b> (edit to correct)</label>
 <textarea id="out" rows="3"></textarea>
 <div class="row"><button onclick="out.value+=' '">Space</button><button onclick="out.value=out.value.slice(0,-1)">Backspace</button><button onclick="out.value=''">Clear</button><button class="pri" onclick="say(out.value)">Speak</button><button onclick="addLog('Me',out.value);out.value=''">Add to chat</button></div>
 <div class="row"><label>Speed <input type="range" id="rate" min=".5" max="1.5" step=".1" value="1" style="width:110px"></label><select id="voice" style="width:auto"></select></div></div>
+<div class="card"><b>🧠 Teach the app your signs</b><p style="font-size:14px;margin:4px 0">Start the camera, pick a letter, press Record and hold that sign steady while tilting your hand slightly. Repeat for each letter. Samples stay on this device, separately for ASL and ISL.</p><div class="row"><select id="tl" style="width:90px"></select><button class="pri" onclick="startTeach()">⏺ Record</button><button onclick="clearTeach()">Clear</button></div><div id="tc" style="font-size:13px;color:var(--mut)"></div></div>
 <div class="card"><b>Hearing person</b><div class="row"><button id="bM" onclick="mic()">🎤 Start listening</button></div>
 <div class="note" id="noteM"></div></div></div></div>
 <div class="card"><b>Text to fingerspelling</b><input id="fs" placeholder="Type a word" oninput="fspell()"><div id="fsOut" class="row"></div>
@@ -93,7 +99,7 @@ svg text{font:12px system-ui;fill:#222;pointer-events:none}.room{fill:#dfe8f7;st
 <section id="nav"><h2>SmartNav</h2>
 <div class="row"><button class="pri" id="tOut" onclick="navMode('out')">Outdoor</button><button id="tIn" onclick="navMode('in')">Indoor (demo campus)</button></div>
 <div id="out2"><div class="row"><input id="q" placeholder="Search destination" style="flex:1"><button onclick="search()">Search</button></div>
-<div class="row" id="fac"></div><div id="map"></div>
+<p style="margin:4px 0"><b>Need something nearby?</b> Tap a button. SignBridge finds the closest one on OpenStreetMap and shows big arrows to walk there. Use it outdoors on your phone with location on.</p><div class="row" id="fac"></div><div id="map"></div>
 <div class="card" id="turn" style="text-align:center;display:none"><div id="arrow"></div><div class="big" id="tinst" style="font-size:28px"></div><div id="tmeta"></div></div>
 <div id="steps"></div></div>
 <div id="in2" style="display:none"><div class="note">DEMO DATA: a sample campus floor plan, not a real building. There is no live indoor tracking; choose where you are by tapping a room.</div>
@@ -107,13 +113,15 @@ svg text{font:12px system-ui;fill:#222;pointer-events:none}.room{fill:#dfe8f7;st
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 const $=s=>document.querySelector(s);
+function setTh(t){document.documentElement.dataset.theme=t;localStorage.th=t;$('#th').textContent=t==='dark'?'☀️':'🌙'}
+setTh(localStorage.th||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'));$('#th').onclick=()=>setTh(document.documentElement.dataset.theme==='dark'?'light':'dark');
 const S=Object.assign({lang:'ASL',contacts:[],phr:[],hist:[],prog:{}},JSON.parse(localStorage.sb||'{}'));
 const save=()=>localStorage.sb=JSON.stringify(S);
 const LN={ASL:'AMERICAN SIGN LANGUAGE',ISL:'INDIAN SIGN LANGUAGE'};
 function go(t){document.querySelectorAll('section').forEach(s=>s.classList.toggle('on',s.id===t));document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));stopCam();if(t==='nav')initMap();scrollTo(0,0)}
 const net=()=>$('#net').textContent=navigator.onLine?'Online':'Offline: emergency tools still work';addEventListener('online',net);addEventListener('offline',net);net();
 $('#lang').value=S.lang;$('#lang').onchange=e=>{S.lang=e.target.value;save();langNote()};
-function langNote(){$('#noteC').textContent=S.lang==='ASL'?'ASL demo: fingerspelling letters only (A B I L S U V W Y, 5). Hold a sign steady for about half a second.':'ISL recognition is not available: no validated ISL model is configured. Use the text, speech and emergency tools.'}langNote();
+function langNote(){$('#noteC').textContent='Letters mode uses the signs you taught ('+S.lang+'). ASL also has 10 rough built-in letters. Words mode needs a trained model in models/'+S.lang.toLowerCase()+'/.'}langNote();
 
 /* ---- speech ---- */
 function say(t){if(!t||!window.speechSynthesis)return alert('Text to speech is not supported on this device.');speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.rate=+$('#rate').value;const v=speechSynthesis.getVoices().find(v=>v.name===$('#voice').value);if(v)u.voice=v;speechSynthesis.speak(u)}
@@ -128,57 +136,80 @@ function addLog(w,t){t=(t||'').trim();if(!t)return;S.hist.push({w,t,at:new Date(
 function renderLog(){$('#log').innerHTML=S.hist.length?S.hist.map(h=>`<div><small>${new Date(h.at).toLocaleTimeString()}</small> <b>${h.w}:</b> ${h.t.replace(/</g,'&lt;')}</div>`).join(''):'No messages yet.'}renderLog();
 function exportLog(){const b=new Blob([S.hist.map(h=>`[${h.at}] ${h.w}: ${h.t}`).join('\n')],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='signbridge-transcript.txt';a.click()}
 
-/* ---- hand tracking + limited ASL classifier ---- */
+/* ---- hand tracking + classifiers ---- */
 const REF={A:[1,0,0,0,0],S:[0,0,0,0,0],B:[0,1,1,1,1],L:[1,1,0,0,0],U:[0,1,1,0,0],V:[0,1,1,0,0],W:[0,1,1,1,0],Y:[1,0,0,0,1],I:[0,0,0,0,1],'5':[1,1,1,1,1]};
 const DESC={A:'Fist with thumb resting along the side.',S:'Fist with thumb across the front of the fingers.',B:'Four fingers straight up together, thumb folded across the palm.',L:'Thumb and index finger extended, forming an L.',U:'Index and middle fingers up and together.',V:'Index and middle fingers up and spread apart.',W:'Index, middle and ring fingers up and spread.',Y:'Thumb and little finger extended, others curled.',I:'Little finger up, others curled.','5':'All five fingers extended and spread.'};
 const FN=['thumb','index finger','middle finger','ring finger','little finger'];
-const d=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
-function measure(lm){const palm=d(lm[0],lm[9]),st=[],ce=[];
-const tr=d(lm[4],lm[5])/palm;st.push(tr>.75?1:0);ce.push(Math.min(1,Math.abs(tr-.75)/.3));
-[[8,6],[12,10],[16,14],[20,18]].forEach(([t,p])=>{const r=d(lm[t],lm[0])/d(lm[p],lm[0]);st.push(r>1.2?1:0);ce.push(Math.min(1,Math.abs(r-1.2)/.3))});
-return{st,conf:ce.reduce((a,b)=>a+b)/5,spread:d(lm[8],lm[12])/palm}}
-function classify(lm){const m=measure(lm);let hit=null;
-for(const k in REF){if(REF[k].every((v,i)=>v===m.st[i])){if(k==='U'&&m.spread>.45)continue;if(k==='V'&&m.spread<=.45)continue;hit=k;break}}
-return{label:hit,conf:m.conf,st:m.st,spread:m.spread}}
+const d3=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y,a.z-b.z);
+const ang=(a,b,c)=>{const u=[a.x-b.x,a.y-b.y,a.z-b.z],v=[c.x-b.x,c.y-b.y,c.z-b.z];return Math.acos(Math.max(-1,Math.min(1,(u[0]*v[0]+u[1]*v[1]+u[2]*v[2])/(Math.hypot(...u)*Math.hypot(...v)+1e-9))))*57.3};
+/* w = MediaPipe WORLD landmarks (metres, true 3D, no camera-aspect distortion) */
+function measure(w){const palm=d3(w[0],w[9]),st=[],ce=[],tD=d3(w[4],w[5])/palm;st.push(tD>.75?1:0);ce.push(Math.min(1,Math.abs(tD-.75)/.25));
+for(const m of[5,9,13,17]){const s=(ang(w[m],w[m+1],w[m+2])+ang(w[m+1],w[m+2],w[m+3]))/2;st.push(s>140?1:0);ce.push(Math.min(1,Math.abs(s-140)/25))}
+return{st,conf:ce.reduce((a,b)=>a+b)/5,spread:d3(w[8],w[12])/palm}}
+const feat=w=>{const p=d3(w[0],w[9])+1e-9;return w.flatMap(q=>[(q.x-w[0].x)/p,(q.y-w[0].y)/p,(q.z-w[0].z)/p])};
+let SAMP=JSON.parse(localStorage.sbs||'[]');
+function knn(f){const ss=SAMP.filter(s=>s.lg===S.lang);if(ss.length<2)return null;
+const ds=ss.map(s=>({l:s.l,d:Math.hypot(...s.f.map((v,i)=>v-f[i]))})).sort((a,b)=>a.d-b.d).slice(0,5),vote={};ds.forEach(x=>vote[x.l]=(vote[x.l]||0)+1);
+const[l,n]=Object.entries(vote).sort((a,b)=>b[1]-a[1])[0],md=ds.filter(x=>x.l===l).reduce((a,x)=>a+x.d,0)/n;
+return md>1.2?{label:null,conf:0}:{label:l,conf:(n/ds.length)*Math.max(0,1-md/1.2)}}
+function classify(lm,w){const m=measure(w),k=knn(feat(w));if(k)return{...k,st:m.st};
+if(S.lang!=='ASL')return{label:null,conf:0,st:m.st};let hit=null;
+for(const c in REF){if(REF[c].every((v,i)=>v===m.st[i])){if(c==='U'&&m.spread>.5)continue;if(c==='V'&&m.spread<=.5)continue;hit=c;break}}
+return{label:hit,conf:m.conf,st:m.st}}
 let HL=null,stream=null,cur=null,raf=0,lastT=-1;
 async function initHL(){if(HL)return HL;const V='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';const m=await import(V+'/+esm');const f=await m.FilesetResolver.forVisionTasks(V+'/wasm');
-HL=await m.HandLandmarker.createFromOptions(f,{baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',delegate:'GPU'},runningMode:'VIDEO',numHands:1});return HL}
-async function toggleCam(v){if(cur===v){stopCam();return}stopCam();
-if(v==='C'&&S.lang==='ISL'){$('#stC').textContent='ISL model not configured';return}
-const st=$('#st'+v);st.textContent='Loading hand model…';
+HL=await m.HandLandmarker.createFromOptions(f,{baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',delegate:'GPU'},runningMode:'VIDEO',numHands:2});return HL}
+async function toggleCam(v){if(cur===v){stopCam();return}stopCam();const st=$('#st'+v);st.textContent='Loading hand model…';
 try{await initHL();stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:640,height:480}})}
 catch(e){st.textContent=e.name==='NotAllowedError'?'Camera permission denied. Allow camera access and retry.':'Camera or model unavailable: '+e.message;return}
 const vid=$('#v'+v);vid.srcObject=stream;await vid.play();cur=v;$('#b'+v).textContent='Stop camera';st.textContent='Tracking';loop()}
-function stopCam(){cancelAnimationFrame(raf);if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;if(cur){$('#b'+cur).textContent='Start camera';$('#st'+cur).textContent='Camera off'}cur=null;cand=null;n=0}
+function stopCam(){cancelAnimationFrame(raf);if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;if(cur){$('#b'+cur).textContent='Start camera';$('#st'+cur).textContent='Camera off'}cur=null;cand=null;n=0;teach=null;buf=[]}
 let cand=null,n=0;
 function loop(){if(!cur)return;const vid=$('#v'+cur),cv=$('#c'+cur);
 if(vid.currentTime!==lastT&&vid.videoWidth){lastT=vid.currentTime;cv.width=vid.videoWidth;cv.height=vid.videoHeight;const cx=cv.getContext('2d');cx.clearRect(0,0,cv.width,cv.height);
-const r=HL.detectForVideo(vid,performance.now());
-if(r.landmarks.length){const lm=r.landmarks[0];cx.fillStyle='#3df59a';lm.forEach(p=>{cx.beginPath();cx.arc(p.x*cv.width,p.y*cv.height,4,0,7);cx.fill()});onHand(classify(lm))}else onHand(null)}
+const r=HL.detectForVideo(vid,performance.now());cx.fillStyle='#ff4d6d';
+r.landmarks.forEach(lm=>lm.forEach(p=>{cx.beginPath();cx.arc(p.x*cv.width,p.y*cv.height,4,0,7);cx.fill()}));
+const w=r.worldLandmarks[0];onHand(w?classify(r.landmarks[0],w):null,w,r)}
 raf=requestAnimationFrame(loop)}
-function onHand(r){if(cur==='C')commHand(r);else learnHand(r)}
+function onHand(r,w,res){if(teach&&w)teachFrame(w);if(cur==='C'){if(teach)return;$('#mode').value==='words'?wordStep(res):commHand(r)}else learnHand(r)}
 function commHand(r){const L=$('#liveC');if(!r){L.textContent='No hand';$('#confC').textContent='';cand=null;n=0;return}
-if(!r.label){L.textContent='?';$('#confC').textContent='Unrecognised sign (not in demo vocabulary)';cand=null;n=0;return}
-L.textContent=r.label;$('#confC').textContent='Confidence '+Math.round(r.conf*100)+'% (landmark rules, demo)';
+if(!r.label){L.textContent='?';$('#confC').textContent=SAMP.some(s=>s.lg===S.lang)||S.lang==='ASL'?'Not recognised. Teach this sign in the Teach panel.':'No '+S.lang+' signs taught yet. Use the Teach panel.';cand=null;n=0;return}
+L.textContent=r.label;$('#confC').textContent='Confidence '+Math.round(r.conf*100)+'% ('+(SAMP.some(s=>s.lg===S.lang)?'your taught samples':'rough built-in rules')+')';
 if(r.label===cand)n++;else{cand=r.label;n=1}
 if(n===15){if(r.conf>=.5)$('#out').value+=r.label;else $('#confC').textContent='Low confidence, not added. Hold the sign clearer or type it.';n=-15}}
+/* teach mode: record your own samples (stored on this device) */
+let teach=null;const tcount=()=>{const c={};SAMP.filter(s=>s.lg===S.lang).forEach(s=>c[s.l]=(c[s.l]||0)+1);$('#tc').textContent=Object.keys(c).length?'Taught ('+S.lang+'): '+Object.entries(c).map(([k,v])=>k+'×'+v).join('  '):'Nothing taught yet for '+S.lang+'.'};
+$('#tl').innerHTML=[...'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'].map(k=>`<option>${k}</option>`).join('');tcount();
+function startTeach(){if(cur!=='C')return alert('Start the camera first.');teach={l:$('#tl').value,n:20,k:0};$('#tc').textContent='Recording '+teach.l+'… keep your hand in view'}
+function teachFrame(w){if(++teach.k%3)return;SAMP.push({l:teach.l,lg:S.lang,f:feat(w).map(v=>+v.toFixed(3))});if(--teach.n<=0){localStorage.sbs=JSON.stringify(SAMP);teach=null;tcount()}}
+function clearTeach(){if(confirm('Delete all taught samples for '+S.lang+'?')){SAMP=SAMP.filter(s=>s.lg!==S.lang);localStorage.sbs=JSON.stringify(SAMP);tcount()}}
+/* word recognition: needs models/<lang>/model.onnx + labels.json from the Colab notebook */
+const WM={},OR='https://cdn.jsdelivr.net/npm/onnxruntime-web@1.18.0/dist/';let buf=[],fr=0,lastW=0;
+async function loadWords(){const l=S.lang;if(l in WM)return WM[l];WM[l]=null;try{const b='models/'+l.toLowerCase()+'/',lab=await(await fetch(b+'labels.json')).json();
+if(!window.ort){await new Promise((ok,no)=>{const s=document.createElement('script');s.src=OR+'ort.min.js';s.onload=ok;s.onerror=no;document.head.appendChild(s)});ort.env.wasm.wasmPaths=OR}
+WM[l]={labels:lab,sess:await ort.InferenceSession.create(b+'model.onnx')}}catch(e){}return WM[l]}
+/* same features as ml/extract_landmarks.py: wrist-relative, max-abs scaled, hands ordered left-to-right in the image */
+function wfeat(r){const hs=r.landmarks.map(l=>{const o=l.flatMap(p=>[p.x-l[0].x,p.y-l[0].y,p.z-l[0].z]),m=Math.max(...o.map(Math.abs))+1e-6;return{x:l[0].x,f:o.map(v=>v/m)}}).sort((a,b)=>a.x-b.x);const v=new Float32Array(126);hs.slice(0,2).forEach((q,i)=>v.set(q.f,i*63));return v}
+async function wordStep(res){const L=$('#liveC'),m=await loadWords();if(!m){L.textContent='–';$('#confC').textContent='No '+S.lang+' word model installed yet. Train one with the Colab notebook.';return}
+buf.push(res&&res.landmarks.length?wfeat(res):null);if(buf.length>60)buf.shift();const fs=buf.filter(Boolean);if(++fr%8||fs.length<15)return;
+const T=30,x=new Float32Array(T*126);for(let i=0;i<T;i++)x.set(fs[Math.round(i*(fs.length-1)/(T-1))],i*126);
+const o=(await m.sess.run({seq:new ort.Tensor('float32',x,[1,T,126])})).logits.data,mx=Math.max(...o),e=[...o].map(v=>Math.exp(v-mx)),s=e.reduce((a,b)=>a+b),p=e.map(v=>v/s),i=p.indexOf(Math.max(...p));
+L.textContent=m.labels[i];$('#confC').textContent=Math.round(p[i]*100)+'% (word model, limited vocabulary of '+m.labels.length+')';
+if(p[i]>=.6&&Date.now()-lastW>2500){lastW=Date.now();$('#out').value+=($('#out').value&&!$('#out').value.endsWith(' ')?' ':'')+m.labels[i]+' ';buf=[]}}
 
 /* ---- text to fingerspelling ---- */
 function fspell(){$('#fsOut').innerHTML=[...$('#fs').value.toUpperCase()].filter(c=>c!==' ').map(c=>`<div class="card" style="width:140px;margin:0" title="${DESC[c]||''}"><div class="big" style="font-size:32px;min-height:0">${c.replace(/</g,'')}</div><small>${DESC[c]||'Description not in demo set'}</small></div>`).join('')}
 
 /* ---- learn ---- */
-$('#tgt').innerHTML=Object.keys(REF).map(k=>`<option>${k}</option>`).join('');
-function setTarget(){const t=$('#tgt').value;$('#desc').textContent=DESC[t];$('#fb').textContent='';renderProg()}
+$('#tgt').innerHTML=[...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'].map(k=>`<option>${k}</option>`).join('');
+function setTarget(){const t=$('#tgt').value;$('#desc').textContent=DESC[t]||'Teach this letter first (Communicate, Teach panel) so there is a reference to compare with.';$('#fb').textContent='';renderProg()}
 function renderProg(){const k=S.lang+':'+$('#tgt').value,p=S.prog[k]||{ok:0,tries:0};$('#prog').innerHTML=`<span class="chip">${S.lang} ${$('#tgt').value}: ${p.ok} matched of ${p.tries} attempts</span>`}
 let ln=0,lc=null;
-function learnHand(r){const T=$('#tgt').value,L=$('#liveL'),fb=$('#fb');
-if(S.lang==='ISL'){fb.textContent='Practice feedback is only available for the ASL demo set.';return}
-if(!r){L.textContent='No hand';return}L.textContent=r.label||'?';
-const ex=REF[T],bad=ex.map((v,i)=>v!==r.st[i]?i:-1).filter(i=>i>=0);let msg;
-if(!bad.length){msg=((T==='U'||T==='V')&&r.label&&r.label!==T)?(T==='V'?'Fingers are right. Spread index and middle apart.':'Fingers are right. Keep index and middle together.'):'Finger positions match the reference ('+Math.round(r.conf*100)+'% visual similarity).'}
-else msg='Adjust: '+bad.map(i=>(ex[i]?'extend ':'curl ')+FN[i]).join(', ')+'.';
-fb.textContent=msg;const key=r.label+'|'+bad.length;if(key===lc)ln++;else{lc=key;ln=1}
-if(ln===20){const k=S.lang+':'+T,p=S.prog[k]||(S.prog[k]={ok:0,tries:0});p.tries++;if(!bad.length)p.ok++;save();renderProg();ln=-20}}
+function learnHand(r){const T=$('#tgt').value,L=$('#liveL'),fb=$('#fb');if(!r){L.textContent='No hand';return}L.textContent=r.label||'?';let ok,msg;const taught=SAMP.some(s=>s.lg===S.lang&&s.l===T);
+if(REF[T]&&S.lang==='ASL'&&!taught){const ex=REF[T],bad=ex.map((v,i)=>v!==r.st[i]?i:-1).filter(i=>i>=0);ok=!bad.length;msg=ok?'Finger positions match the rough reference.':'Adjust: '+bad.map(i=>(ex[i]?'extend ':'curl ')+FN[i]).join(', ')+'.'}
+else{ok=r.label===T;msg=ok?'Matches your taught sample ('+Math.round(r.conf*100)+'% similarity).':taught?'Not matching yet. The app sees '+(r.label||'an unknown shape')+'.':'No samples for '+T+' yet. Teach it in Communicate first.'}
+fb.textContent=(ok?'✅ ':'🔁 ')+msg;const key=r.label+'|'+ok;if(key===lc)ln++;else{lc=key;ln=1}
+if(ln===20){const k=S.lang+':'+T,p=S.prog[k]||(S.prog[k]={ok:0,tries:0});p.tries++;if(ok)p.ok++;save();renderProg();ln=-20}}
 setTarget();
 
 /* ---- emergency ---- */
@@ -200,7 +231,8 @@ let map,me,meM,dest,line,route,si=0,wid,lay;
 function navMode(m){$('#out2').style.display=m==='out'?'':'none';$('#in2').style.display=m==='in'?'':'none';$('#tOut').className=m==='out'?'pri':'';$('#tIn').className=m==='in'?'pri':'';if(m==='out')setTimeout(()=>map&&map.invalidateSize(),50)}
 function initMap(){if(map)return;map=L.map('map').setView([28.47,77.5],13);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors',maxZoom:19}).addTo(map);lay=L.layerGroup().addTo(map);
 if(navigator.geolocation)wid=navigator.geolocation.watchPosition(p=>{me=[p.coords.latitude,p.coords.longitude];if(!meM){meM=L.circleMarker(me,{radius:8}).addTo(map);map.setView(me,16)}else meM.setLatLng(me);track()},e=>{$('#steps').innerHTML='<div class="note">Location unavailable ('+(e.code===1?'permission denied':e.message)+'). You can still search and view routes from the map centre.</div>'},{enableHighAccuracy:true})}
-$('#fac').innerHTML=[['hospital','🏥'],['pharmacy','💊'],['police','👮'],['atm','🏧'],['restaurant','🍴'],['toilets','🚻']].map(([k,i])=>`<button onclick="fac('${k}')">${i} ${k}</button>`).join('');
+$('#fac').innerHTML=[['amenity=toilets','🚻 Toilet'],['amenity=hospital','🏥 Hospital'],['amenity=pharmacy','💊 Pharmacy'],['amenity=restaurant','🍴 Food'],['highway=bus_stop','🚌 Bus stop'],['amenity=atm','🏧 ATM'],['amenity=police','👮 Police']].map(([k,l])=>`<button class="pri" style="font-size:17px" onclick="near('${k}')">${l}</button>`).join('')
+async function near(k){if(!me)return alert('Allow location access first, then try again.');lay.clearLayers();try{const r=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:`[out:json][timeout:20];nwr(around:2500,${me[0]},${me[1]})[${k}];out center 30;`});const j=await r.json();if(!j.elements.length)return alert('Nothing found within 2.5 km in OpenStreetMap.');const e=j.elements.map(e=>({la:e.lat||e.center.lat,lo:e.lon||e.center.lon,n:(e.tags.name||k).replace(/</g,'')})).sort((a,b)=>L.latLng(me).distanceTo([a.la,a.lo])-L.latLng(me).distanceTo([b.la,b.lo]))[0];L.marker([e.la,e.lo]).addTo(lay).bindPopup(e.n).openPopup();routeTo(e.la,e.lo)}catch(x){alert('This needs an internet connection.')}}
 async function fac(k){const c=me?L.latLng(me):map.getCenter();lay.clearLayers();
 try{const r=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:`[out:json][timeout:20];nwr(around:1500,${c.lat},${c.lng})[amenity=${k}];out center 25;`});const j=await r.json();
 if(!j.elements.length)return alert('No '+k+' found within 1.5 km in OpenStreetMap.');
