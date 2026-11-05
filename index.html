@@ -43,6 +43,7 @@ nav button{flex:1;border:0;border-radius:0;min-height:62px;font-size:12px;backgr
 svg text{font:12px system-ui;fill:#241a3a;pointer-events:none}.room{fill:#e5dcff;stroke:#6c3df5;cursor:pointer}.room.sel{fill:#ffd166}#plan{background:#fff!important}
 .sg{width:92px;height:92px;object-fit:contain;background:#fff;border-radius:12px;border:2px solid var(--line);padding:4px;filter:grayscale(1)}.sgb{width:150px;height:150px;margin-bottom:6px}#chart figure{margin:0;text-align:center;cursor:pointer}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.sg{object-fit:contain}.sg[src*="Dhawal-17"]{filter:grayscale(1);}
 </style>
 </head>
 <body>
@@ -122,8 +123,8 @@ function setTh(t){document.documentElement.dataset.theme=t;localStorage.th=t;$('
 setTh(localStorage.th||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'));$('#th').onclick=()=>setTh(document.documentElement.dataset.theme==='dark'?'light':'dark');
 const S=Object.assign({lang:'ASL',contacts:[],phr:[],hist:[],prog:{}},JSON.parse(localStorage.sb||'{}'));
 const save=()=>localStorage.sb=JSON.stringify(S);
-const SG=c=>/^[A-Z]$/.test(c)&&S.lang==='ASL'?'https://www.anysign.app/images/alphabet/asl/asl-alphabet-letter-'+c.toLowerCase()+'-american-sign-language-handshape.webp':S.lang==='ISL'&&/^[A-Z]$/.test(c)?'https://raw.githubusercontent.com/shivapreetham/indian-sign-language-detection/main/letters/'+c.toLowerCase()+'.jpg':'';
-const sgImg=(c,k)=>SG(c)?`<img class="sg ${k||''}" src="${SG(c)}" alt="${S.lang} sign for ${c}" loading="lazy" onerror="if(this.dataset.fallback!=='1'){this.dataset.fallback='1';this.src='https://cdn.jsdelivr.net/gh/shivapreetham/indian-sign-language-detection@main/letters/'+this.alt.slice(-1).toLowerCase()+'.jpg'}else{this.outerHTML='<div class=\"sg sgb\" style=\"display:flex;align-items:center;justify-content:center;font-size:12px;text-align:center;padding:8px\">'+this.alt+'</div>'}">` : '';
+const SG=c=>{if(!/^[A-Z]$/.test(c))return '';if(S.lang==='ASL')return 'https://www.anysign.app/images/alphabet/asl/asl-alphabet-letter-'+c.toLowerCase()+'-american-sign-language-handshape.webp';return 'https://raw.githubusercontent.com/Dhawal-17/indian_sign_language/main/Dataset/Letters/'+c+'.jpg'};
+const sgImg=(c,k)=>SG(c)?`<img class="sg ${k||''}" src="${SG(c)}" alt="${S.lang} sign for ${c}" loading="lazy" onerror="this.outerHTML='<div class=\"sg sgb\" style=\"display:flex;align-items:center;justify-content:center;font-size:12px;text-align:center;padding:8px\">Reference unavailable for ${S.lang} ${c}</div>'">` : '';
 const spellImgs=w=>'<div class="row" style="justify-content:center">'+[...w.toUpperCase()].filter(c=>/^[A-Z]$/.test(c)).map(c=>sgImg(c)).join('')+'</div><small>Fingerspelled in '+S.lang+'. This is spelling, not the full sign.</small>';
 function renderChart(){$('#chart').innerHTML=[...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'].map(c=>`<figure onclick="$('#tgt').value='${c}';setTarget();scrollTo(0,0)">${sgImg(c)}<figcaption><b>${c}</b></figcaption></figure>`).join('')}
 const LN={ASL:'AMERICAN SIGN LANGUAGE',ISL:'INDIAN SIGN LANGUAGE'};
@@ -186,7 +187,21 @@ const worlds=r.worldLandmarks||[];
 for(let i=0;i<r.landmarks.length;i++){const w=worlds[i];if(!w)continue;const cr=classify(r.landmarks[i],w,worlds);if(!best||cr.conf>best.conf){best=cr;bestW=w}}
 onHand(best,bestW,r)}
 raf=requestAnimationFrame(loop)}
-function onHand(r,w,res){if(teach&&res&&res.worldLandmarks?.length)teachFrame(res.worldLandmarks);if(cur==='C'){if(teach)return;$('#mode').value==='words'?wordStep(res):commHand(r)}else if(cur==='N'){$('#nmode').value==='words'?wordStep(res):navLetter(r)}else learnHand(r)}
+function onHand(r,w,res){if(teach&&res&&res.worldLandmarks?.length)teachFrame(res.worldLandmarks);if(cur==='C'){if(teach)return;$('#mode').value==='words'?wordStep(res):(S.lang==='ISL'?islLetterStep(res):commHand(r))}else if(cur==='N'){$('#nmode').value==='words'?wordStep(res):navLetter(r)}else{S.lang==='ISL'?islLearnStep(res):learnHand(r)}}
+const ISL_ALPHA={sess:null,loading:null,last:0,cand:'',stable:0};
+const ISL_ALPHA_MODEL='https://media.githubusercontent.com/media/Hafiz-alt/Sign-Language-Translator/main/isl_model.onnx';
+const ISL_ALPHA_LABELS=['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','NO_SIGN'];
+async function loadIslAlphabet(){if(ISL_ALPHA.sess)return ISL_ALPHA.sess;if(ISL_ALPHA.loading)return ISL_ALPHA.loading;ISL_ALPHA.loading=(async()=>{if(!window.ort){await new Promise((ok,no)=>{const s=document.createElement('script');s.src=OR+'ort.min.js';s.onload=ok;s.onerror=no;document.head.appendChild(s)});ort.env.wasm.wasmPaths=OR}ISL_ALPHA.sess=await ort.InferenceSession.create(ISL_ALPHA_MODEL,{executionProviders:['wasm']});return ISL_ALPHA.sess})().catch(()=>null);return ISL_ALPHA.loading}
+function islCrop(res){const v=$('#vC');if(!v||!v.videoWidth||!res?.landmarks?.length)return null;let x0=1,y0=1,x1=0,y1=0;res.landmarks.forEach(h=>h.forEach(p=>{x0=Math.min(x0,p.x);y0=Math.min(y0,p.y);x1=Math.max(x1,p.x);y1=Math.max(y1,p.y)}));const pad=.28,w=x1-x0,h=y1-y0,cx=(x0+x1)/2,cy=(y0+y1)/2,side=Math.max(w,h)*(1+pad*2);x0=Math.max(0,cx-side/2);y0=Math.max(0,cy-side/2);x1=Math.min(1,cx+side/2);y1=Math.min(1,cy+side/2);const c=document.createElement('canvas');c.width=c.height=224;const g=c.getContext('2d');g.drawImage(v,x0*v.videoWidth,y0*v.videoHeight,(x1-x0)*v.videoWidth,(y1-y0)*v.videoHeight,0,0,224,224);return c}
+async function predictIsl(res){
+if(!res?.landmarks?.length)return null;
+if(!ISL_ALPHA.sess){const m=await loadIslAlphabet();if(!m)return null}
+const crop=islCrop(res);if(!crop)return null;
+const px=crop.getContext('2d').getImageData(0,0,224,224).data,mean=[.485,.456,.406],std=[.229,.224,.225],x=new Float32Array(3*224*224);
+for(let i=0;i<224*224;i++){const j=i*4;x[i]=(px[j]/255-mean[0])/std[0];x[224*224+i]=(px[j+1]/255-mean[1])/std[1];x[2*224*224+i]=(px[j+2]/255-mean[2])/std[2]}
+try{const inp=ISL_ALPHA.sess.inputs[0],out=await ISL_ALPHA.sess.run({[inp.name]:new ort.Tensor('float32',x,[1,3,224,224])}),a=out[Object.keys(out)[0]].data;let bi=0;for(let i=1;i<a.length;i++)if(a[i]>a[bi])bi=i;const mx=Math.max(...a),ex=[...a].map(v=>Math.exp(v-mx)),sum=ex.reduce((q,v)=>q+v,0),p=ex[bi]/sum,label=ISL_ALPHA_LABELS[bi]||'?';return label==='NO_SIGN'||p<.55?{label:null,conf:p}:{label,conf:p}}catch(e){return null}}
+async function islLetterStep(res){const L=$('#liveC'),C=$('#confC');if(!res?.landmarks?.length){L.textContent='No hand';C.textContent='';ISL_ALPHA.stable=0;return}if(Date.now()-ISL_ALPHA.last<90)return;ISL_ALPHA.last=Date.now();C.textContent='Loading ISL A–Z model…';const r=await predictIsl(res);if(!r){L.textContent='?';C.textContent='ISL A–Z model unavailable or no confident sign';ISL_ALPHA.stable=0;return}L.textContent=r.label;C.textContent='ISL A–Z • '+Math.round(r.conf*100)+'%';if(r.label===ISL_ALPHA.cand)ISL_ALPHA.stable++;else{ISL_ALPHA.cand=r.label;ISL_ALPHA.stable=1}if(ISL_ALPHA.stable>=8){if(!$('#out').value.endsWith(r.label))$('#out').value+=r.label;ISL_ALPHA.stable=-8}}
+async function islLearnStep(res){const L=$('#liveL'),fb=$('#fb'),T=$('#tgt').value;if(!res?.landmarks?.length){L.textContent='No hand';fb.textContent='';return}const r=await predictIsl(res);if(!r){L.textContent='?';fb.textContent='🔁 No confident ISL sign yet. Hold the palm-facing sign clearly in the camera.';return}L.textContent=r.label;const ok=r.label===T;fb.textContent=(ok?'✅ ':'🔁 ')+(ok?'Correct ISL '+T+' ('+Math.round(r.conf*100)+'%).':'Detected '+r.label+' ('+Math.round(r.conf*100)+'%). Show the ISL '+T+' sign.');}
 function commHand(r){const L=$('#liveC');if(!r){L.textContent='No hand';$('#confC').textContent='';cand=null;n=0;return}
 if(!r.label){L.textContent='?';$('#confC').textContent=SAMP.some(s=>s.lg===S.lang)||S.lang==='ASL'?'Not recognised. Teach this sign in the Teach panel.':'No '+S.lang+' signs taught yet. Use the Teach panel.';cand=null;n=0;return}
 L.textContent=r.label;$('#confC').textContent='Confidence '+Math.round(r.conf*100)+'% ('+(SAMP.some(s=>s.lg===S.lang)?'your taught samples':'rough built-in rules')+')  Fingers T-I-M-R-P: '+r.st.join('');
@@ -221,7 +236,7 @@ function fspell(){$('#fsOut').innerHTML=[...$('#fs').value.toUpperCase()].filter
 
 /* ---- learn ---- */
 $('#tgt').innerHTML=[...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'].map(k=>`<option>${k}</option>`).join('');
-function setTarget(){const t=$('#tgt').value;$('#desc').textContent=DESC[t]||'Use the palm-facing reference below. The picture guides you; the recognizer learns from your live camera samples.';$('#lImg').innerHTML=(sgImg(t,'sgb')||'<small>No reference image loaded for this '+S.lang+' letter.</small>')+'<div style="margin-top:10px"><button onclick="teachTarget()">🎓 Teach '+t+' from camera</button></div>';$('#fb').textContent='';renderProg()}
+function setTarget(){const t=$('#tgt').value;$('#desc').textContent=S.lang==='ISL'?'Use the palm-facing ISL reference below. The camera uses the built-in ISL A–Z recognizer automatically.':(DESC[t]||'Use the palm-facing reference below. The picture guides you; the recognizer learns from your live camera samples.');$('#lImg').innerHTML=(sgImg(t,'sgb')||'<small>No reference image loaded for this '+S.lang+' letter.</small>')+(S.lang==='ASL'?'<div style="margin-top:10px"><button onclick="teachTarget()">🎓 Teach '+t+' from camera</button></div>':'');$('#fb').textContent='';renderProg()}
 function renderProg(){const k=S.lang+':'+$('#tgt').value,p=S.prog[k]||{ok:0,tries:0};$('#prog').innerHTML=`<span class="chip">${S.lang} ${$('#tgt').value}: ${p.ok} matched of ${p.tries} attempts</span>`}
 function teachTarget(){if(cur!=='C')return alert('Start the camera in Communicate first. Then return here and show the selected '+S.lang+' sign.');$('#tl').value=$('#tgt').value;startTeach();}
 let ln=0,lc=null;
@@ -350,39 +365,7 @@ async function ensureLocation(){
 }
 $('#fac').innerHTML=[['amenity=toilets','🚻 Toilet'],['amenity=hospital','🏥 Hospital'],['amenity=pharmacy','💊 Pharmacy'],['amenity=restaurant','🍴 Food'],['highway=bus_stop','🚌 Bus stop'],['amenity=atm','🏧 ATM'],['amenity=police','👮 Police']].map(([k,l])=>`<button class="pri" style="font-size:17px" onclick="near('${k}')">${l}</button>`).join('');
 async function ovp(q){for(const u of['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter']){try{const c=new AbortController();const tm=setTimeout(()=>c.abort(),12000);const r=await fetch(u+'?data='+encodeURIComponent(q),{method:'GET',signal:c.signal,headers:{'Accept':'application/json'}});clearTimeout(tm);if(r.ok)return(await r.json()).elements}catch(e){}}throw 0}
-async function near(k){
-  lay.clearLayers();
-  const label=k.split('=')[1].replace('_',' ');
-  nm('Getting your current location…');
-  let s=await freshLocation();
-  if(!s)s=await ensureLocation();
-  nm('Finding the nearest '+label+'…');
-  if(!s){
-    const q=encodeURIComponent(label+' near me');
-    nm('Device location was unavailable. Opening Google Maps nearby search…');
-    window.location.assign('https://www.google.com/maps/search/?api=1&query='+q);
-    return;
-  }
-  try{
-    const els=await ovp(`[out:json][timeout:20];nwr(around:15000,${s[0]},${s[1]})[${k}];out center 200;`);
-    if(!els.length){nm('No '+label+' found within 15 km. Try again or use Search.');return}
-    const base=L.latLng(s);
-    const places=els.map(e=>({la:e.lat??e.center?.lat,lo:e.lon??e.center?.lon,n:(e.tags?.name||label).replace(/</g,'')})).filter(e=>Number.isFinite(e.la)&&Number.isFinite(e.lo));
-    if(!places.length){nm('The location service returned no usable coordinates. Try again.');return}
-    places.sort((a,b)=>base.distanceTo([a.la,a.lo])-base.distanceTo([b.la,b.lo]));
-    const e=places[0],d=Math.round(base.distanceTo([e.la,e.lo]));
-    L.marker([e.la,e.lo]).addTo(lay).bindPopup(`<b>${e.n}</b><br>${d} m away`).openPopup();
-    map.setView([e.la,e.lo],17);
-    nm('Nearest '+NN[k]+' found: '+e.n+' ('+d+' m). Opening Google Maps…');
-    const u='https://www.google.com/maps/dir/?api=1&origin='+encodeURIComponent(s[0]+','+s[1])+'&destination='+encodeURIComponent(e.la+','+e.lo)+'&travelmode=walking';
-    // Open the real destination in Google Maps after selecting the closest OSM result.
-    window.location.assign(u);
-  }catch(x){
-    nm('Nearby search could not be completed. Opening Google Maps search instead…');
-    const q=encodeURIComponent(label+' near '+s[0]+','+s[1]);
-    window.location.assign('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(label+' near '+s[0]+','+s[1]));
-  }
-}
+function near(k){const label=k.split('=')[1].replace('_',' ');const q=encodeURIComponent(label+' near me');nm('Opening Google Maps for the nearest '+label+'…');window.location.assign('https://www.google.com/maps/search/?api=1&query='+q)}
 async function freshLocation(){
   if(!navigator.geolocation)return null;
   return await new Promise(resolve=>navigator.geolocation.getCurrentPosition(
