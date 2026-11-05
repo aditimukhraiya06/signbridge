@@ -32,7 +32,7 @@ h1,h2{background:linear-gradient(90deg,#6c3df5,#ff4d6d,#ff9a3d);-webkit-backgrou
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}
 .note{font-size:13px;color:var(--mut);background:var(--card);border-left:5px solid #ff9a3d;padding:8px 10px;border-radius:8px;margin:8px 0}
 .cam{position:relative;background:#000;border-radius:18px;overflow:hidden;aspect-ratio:4/3;max-width:480px;border:3px solid #6c3df5}
-.cam video,.cam canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+.cam video,.cam canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}.isl-guide{position:absolute;left:11%;top:11%;width:78%;aspect-ratio:1;border:3px dashed #fff;border-radius:18px;box-shadow:0 0 0 9999px #0003;pointer-events:none;z-index:2}.isl-guide span{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:#000b;color:#fff;padding:4px 9px;border-radius:99px;font-size:12px;white-space:nowrap}
 .big{font-size:44px;font-weight:800;min-height:56px;color:var(--blue)}.log{max-height:220px;overflow:auto;font-size:14px}
 .chip{display:inline-block;padding:4px 12px;border-radius:99px;background:linear-gradient(90deg,#6c3df522,#ff4d6d22);border:1px solid var(--line);font-size:13px;font-weight:600}
 nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--card);border-top:3px solid #6c3df5;z-index:6}
@@ -64,7 +64,7 @@ svg text{font:12px system-ui;fill:#241a3a;pointer-events:none}.room{fill:#e5dcff
 
 <section id="comm"><h2>Communicate</h2>
 <div class="grid"><div>
-<div class="cam"><video id="vC" playsinline muted></video><canvas id="cC"></canvas></div>
+<div class="cam"><video id="vC" playsinline muted></video><canvas id="cC"></canvas><div class="isl-guide" id="islGuideC" style="display:none"><span>Place your palm-facing ISL sign inside the box</span></div></div>
 <div class="row"><select id="mode" style="width:auto" onchange="buf=[]"><option value="letters">Letters</option><option value="words">Words (needs model)</option></select><button class="pri" id="bC" onclick="toggleCam('C')">Start camera</button><span id="stC" class="chip">Camera off</span></div>
 <div class="big" id="liveC">–</div><div id="confC" style="color:var(--mut)"></div>
 <div class="note" id="noteC"></div></div>
@@ -87,7 +87,7 @@ svg text{font:12px system-ui;fill:#241a3a;pointer-events:none}.room{fill:#e5dcff
 <div class="card"><label for="tgt"><b>Sign to practise</b></label><select id="tgt" onchange="setTarget()"></select>
 <div id="lImg"></div><p id="desc"></p><div class="big" id="liveL">–</div><div id="fb" style="min-height:48px"></div>
 <div id="prog"></div></div></div>
-<div class="note">Feedback compares finger positions measured from camera landmarks. It shows visual similarity to a simple reference, not linguistic correctness. Palm orientation and movement are not measured.</div>
+<div class="note">ISL A–Z recognition uses the camera guide box and a dedicated alphabet model. Keep the palm-facing sign fully inside the box and hold it steady for a moment.</div>
 <div class="card"><b id="alphaTitle">ASL alphabet pictures</b> <small>(tap a letter to practise it)</small><div class="row" id="chart"></div><div class="note" id="alphaNote">J and Z are signed with movement, so a still picture only shows the starting shape.</div></div>
 </section>
 
@@ -101,7 +101,7 @@ svg text{font:12px system-ui;fill:#241a3a;pointer-events:none}.room{fill:#e5dcff
 
 <section id="nav"><h2>SmartNav</h2>
 <div class="row"><button class="pri" id="tOut" onclick="navMode('out')">Outdoor</button><button id="tIn" onclick="navMode('in')">Indoor (demo campus)</button></div>
-<div id="out2"><div class="row"><input id="q" placeholder="Search a place, shop, restaurant…" style="flex:1" autocomplete="off" onkeydown="if(event.key==='Enter')search()"><button class="pri" onclick="search()">🔎 Search Google Maps</button></div><div id="navmsg" class="note">Type the exact place or business you want, then search. Sign Your Way will open Google Maps for that search.</div>
+<div id="out2"><form class="row" id="mapsSearch" action="https://www.google.com/maps/search/" method="get" target="_self" onsubmit="return search(event)"><input type="hidden" name="api" value="1"><input id="q" name="query" placeholder="Search a place, shop, restaurant…" style="flex:1" autocomplete="off"><button class="pri" type="submit">🔎 Search Google Maps</button></form><div id="navmsg" class="note">Type the exact place or business you want, then search. Sign Your Way opens Google Maps for exactly what you typed.</div>
 <div class="card"><b>🤟 Ask with a sign</b><p style="font-size:14px;margin:4px 0">Sign a letter (or a word, if you installed a word model) and Sign Your Way asks to find that place. Letters: <b>T</b> toilet, <b>H</b> hospital, <b>P</b> pharmacy, <b>F</b> food, <b>B</b> bus, <b>A</b> ATM, <b>S</b> police. Teach those letters first in Communicate. You can also speak, or tap the buttons below.</p>
 <div class="grid"><div><div class="cam"><video id="vN" playsinline muted></video><canvas id="cN"></canvas></div><div class="row"><select id="nmode" style="width:auto" onchange="buf=[]"><option value="letters">Signed letters</option><option value="words">Signed words (needs model)</option></select><button class="pri" id="bN" onclick="toggleCam('N')">Start camera</button><button onclick="micOut()">🎤 Say it</button></div><span id="stN" class="chip">Camera off</span></div>
 <div><div class="big" id="liveN">–</div><div id="confN" style="color:var(--mut)"></div><div id="navq"></div></div></div></div>
@@ -124,7 +124,7 @@ setTh(localStorage.th||(matchMedia('(prefers-color-scheme:dark)').matches?'dark'
 const S=Object.assign({lang:'ASL',contacts:[],phr:[],hist:[],prog:{}},JSON.parse(localStorage.sb||'{}'));
 const save=()=>localStorage.sb=JSON.stringify(S);
 const SG=c=>{if(!/^[A-Z]$/.test(c))return '';if(S.lang==='ASL')return 'https://www.anysign.app/images/alphabet/asl/asl-alphabet-letter-'+c.toLowerCase()+'-american-sign-language-handshape.webp';return 'https://raw.githubusercontent.com/Dhawal-17/indian_sign_language/main/Dataset/Letters/'+c+'.jpg'};
-const sgImg=(c,k)=>SG(c)?`<img class="sg ${k||''}" src="${SG(c)}" alt="${S.lang} sign for ${c}" loading="lazy">` : '';
+const sgImg=(c,k)=>SG(c)?`<img class="sg ${k||''}" src="${SG(c)}" alt="${S.lang} sign for ${c}" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : '';
 const spellImgs=w=>'<div class="row" style="justify-content:center">'+[...w.toUpperCase()].filter(c=>/^[A-Z]$/.test(c)).map(c=>sgImg(c)).join('')+'</div><small>Fingerspelled in '+S.lang+'. This is spelling, not the full sign.</small>';
 function renderChart(){$('#chart').innerHTML=[...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'].map(c=>`<figure onclick="$('#tgt').value='${c}';setTarget();scrollTo(0,0)">${sgImg(c)}<figcaption><b>${c}</b></figcaption></figure>`).join('')}
 const LN={ASL:'AMERICAN SIGN LANGUAGE',ISL:'INDIAN SIGN LANGUAGE'};
@@ -174,8 +174,8 @@ HL=await m.HandLandmarker.createFromOptions(f,{baseOptions:{modelAssetPath:'http
 async function toggleCam(v){if(cur===v){stopCam();return}stopCam();const st=$('#st'+v);st.textContent='Loading hand model…';
 try{await initHL();stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:640,height:480}})}
 catch(e){st.textContent=e.name==='NotAllowedError'?'Camera permission denied. Allow camera access and retry.':'Camera or model unavailable: '+e.message;return}
-const vid=$('#v'+v);vid.srcObject=stream;await vid.play();cur=v;$('#b'+v).textContent='Stop camera';st.textContent='Tracking';loop()}
-function stopCam(){cancelAnimationFrame(raf);if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;if(cur){$('#b'+cur).textContent='Start camera';$('#st'+cur).textContent='Camera off'}cur=null;cand=null;n=0;teach=null;buf=[]}
+const vid=$('#v'+v);vid.srcObject=stream;await vid.play();cur=v;$('#b'+v).textContent='Stop camera';st.textContent='Tracking';if($('#islGuideC'))$('#islGuideC').style.display=v==='C'&&S.lang==='ISL'?'block':'none';loop()}
+function stopCam(){cancelAnimationFrame(raf);if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;if(cur){$('#b'+cur).textContent='Start camera';$('#st'+cur).textContent='Camera off'}if($('#islGuideC'))$('#islGuideC').style.display='none';cur=null;cand=null;n=0;teach=null;buf=[]}
 let cand=null,n=0;
 function loop(){if(!cur)return;const vid=$('#v'+cur),cv=$('#c'+cur);
 if(vid.currentTime!==lastT&&vid.videoWidth){lastT=vid.currentTime;cv.width=vid.videoWidth;cv.height=vid.videoHeight;const cx=cv.getContext('2d');cx.clearRect(0,0,cv.width,cv.height);
@@ -192,7 +192,14 @@ const ISL_ALPHA={sess:null,loading:null,last:0,cand:'',stable:0};
 const ISL_ALPHA_MODEL='https://media.githubusercontent.com/media/Hafiz-alt/Sign-Language-Translator/main/isl_model.onnx';
 const ISL_ALPHA_LABELS=['A','B','C','D','E','F','G','H','I','J','K','L','M','N','NO_SIGN','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
 async function loadIslAlphabet(){if(ISL_ALPHA.sess)return ISL_ALPHA.sess;if(ISL_ALPHA.loading)return ISL_ALPHA.loading;ISL_ALPHA.loading=(async()=>{if(!window.ort){await new Promise((ok,no)=>{const s=document.createElement('script');s.src=OR+'ort.min.js';s.onload=ok;s.onerror=no;document.head.appendChild(s)});ort.env.wasm.wasmPaths=OR}ISL_ALPHA.sess=await ort.InferenceSession.create(ISL_ALPHA_MODEL,{executionProviders:['wasm']});return ISL_ALPHA.sess})().catch(()=>null);return ISL_ALPHA.loading}
-function islCrop(res){const v=$('#vC');if(!v||!v.videoWidth||!res?.landmarks?.length)return null;let x0=1,y0=1,x1=0,y1=0;res.landmarks.forEach(h=>h.forEach(p=>{x0=Math.min(x0,p.x);y0=Math.min(y0,p.y);x1=Math.max(x1,p.x);y1=Math.max(y1,p.y)}));const pad=.16,w=x1-x0,h=y1-y0,cx=(x0+x1)/2,cy=(y0+y1)/2,side=Math.max(w,h)*(1+pad*2);x0=Math.max(0,cx-side/2);y0=Math.max(0,cy-side/2);x1=Math.min(1,cx+side/2);y1=Math.min(1,cy+side/2);const c=document.createElement('canvas');c.width=c.height=224;const g=c.getContext('2d');g.drawImage(v,x0*v.videoWidth,y0*v.videoHeight,(x1-x0)*v.videoWidth,(y1-y0)*v.videoHeight,0,0,224,224);return c}
+function islCrop(res){const v=$('#vC');if(!v||!v.videoWidth)return null;
+// The alphabet model was trained around a centered guide-box crop. Do not
+// resize to the detected hand bounding box: that changes the scale/position
+// distribution the model sees.
+const side=Math.min(v.videoWidth,v.videoHeight)*0.78;
+const sx=(v.videoWidth-side)/2, sy=(v.videoHeight-side)/2;
+const c=document.createElement('canvas');c.width=c.height=224;
+const g=c.getContext('2d');g.drawImage(v,sx,sy,side,side,0,0,224,224);return c}
 async function predictIsl(res){
 if(!res?.landmarks?.length)return null;
 if(!ISL_ALPHA.sess){const m=await loadIslAlphabet();if(!m)return null}
@@ -236,7 +243,7 @@ function fspell(){$('#fsOut').innerHTML=[...$('#fs').value.toUpperCase()].filter
 
 /* ---- learn ---- */
 $('#tgt').innerHTML=[...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'].map(k=>`<option>${k}</option>`).join('');
-function setTarget(){const t=$('#tgt').value;$('#desc').textContent=S.lang==='ISL'?'Use the palm-facing ISL reference below. The camera uses the built-in ISL A–Z recognizer automatically.':(DESC[t]||'Use the palm-facing reference below. The picture guides you; the recognizer learns from your live camera samples.');$('#lImg').innerHTML=(sgImg(t,'sgb')||'<small>No reference image loaded for this '+S.lang+' letter.</small>')+(S.lang==='ASL'?'<div style="margin-top:10px"><button onclick="teachTarget()">🎓 Teach '+t+' from camera</button></div>':'');$('#fb').textContent='';renderProg()}
+function setTarget(){const t=$('#tgt').value;$('#desc').textContent=S.lang==='ISL'?'Use the palm-facing ISL reference below. The camera uses the built-in ISL A–Z recognizer automatically.':(DESC[t]||'Use the palm-facing reference below. The picture guides you; the recognizer learns from your live camera samples.');$('#lImg').innerHTML=sgImg(t,'sgb')+(S.lang==='ASL'?'<div style="margin-top:10px"><button onclick="teachTarget()">🎓 Teach '+t+' from camera</button></div>':'');$('#fb').textContent='';renderProg()}
 function renderProg(){const k=S.lang+':'+$('#tgt').value,p=S.prog[k]||{ok:0,tries:0};$('#prog').innerHTML=`<span class="chip">${S.lang} ${$('#tgt').value}: ${p.ok} matched of ${p.tries} attempts</span>`}
 function teachTarget(){if(cur!=='C')return alert('Start the camera in Communicate first. Then return here and show the selected '+S.lang+' sign.');$('#tl').value=$('#tgt').value;startTeach();}
 let ln=0,lc=null;
@@ -376,7 +383,7 @@ async function freshLocation(){
 }
 async function geo(q){try{const r=await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&q='+encodeURIComponent(q));if(r.ok){const j=await r.json();if(j.length)return j.map(x=>({la:+x.lat,lo:+x.lon,n:x.display_name}))}}catch(e){}
 const c=map.getCenter(),r=await fetch('https://photon.komoot.io/api/?limit=6&lat='+c.lat+'&lon='+c.lng+'&q='+encodeURIComponent(q)),j=await r.json();return j.features.map(f=>({la:f.geometry.coordinates[1],lo:f.geometry.coordinates[0],n:[f.properties.name,f.properties.city,f.properties.country].filter(Boolean).join(', ')}))}
-function search(){const q=$('#q').value.trim();if(!q){$('#q').focus();return}const url='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q);window.location.assign(url)}
+function search(e){if(e)e.preventDefault();const q=$('#q').value.trim();if(!q){$('#q').focus();return false}const url='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q);window.location.href=url;return false}
 async function getRoute(a,b){const co=`${a[1]},${a[0]};${b[1]},${b[0]}`,q='?overview=full&geometries=geojson&steps=true';
 for(const u of['https://routing.openstreetmap.de/routed-foot/route/v1/driving/','https://router.project-osrm.org/route/v1/foot/']){try{const r=await fetch(u+co+q),j=await r.json();if(j.code==='Ok')return{r:j.routes[0],walk:u.includes('routed-foot')}}catch(e){}}throw 0}
 async function routeTo(la,lo){const a=start();dest=[la,lo];nm(me?'Finding a walking route…':'Your location is unknown, so the route starts from the map centre.');
