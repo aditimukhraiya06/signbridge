@@ -122,8 +122,8 @@ function setTh(t){document.documentElement.dataset.theme=t;localStorage.th=t;$('
 setTh(localStorage.th||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'));$('#th').onclick=()=>setTh(document.documentElement.dataset.theme==='dark'?'light':'dark');
 const S=Object.assign({lang:'ASL',contacts:[],phr:[],hist:[],prog:{}},JSON.parse(localStorage.sb||'{}'));
 const save=()=>localStorage.sb=JSON.stringify(S);
-const SG=c=>/^[A-Z]$/.test(c)&&S.lang==='ASL'?'https://www.anysign.app/images/alphabet/asl/asl-alphabet-letter-'+c.toLowerCase()+'-american-sign-language-handshape.webp':S.lang==='ISL'&&/^[A-Z]$/.test(c)?'https://cdn.jsdelivr.net/gh/shivapreetham/indian-sign-language-detection@main/letters/'+c.toLowerCase()+'.jpg':'';
-const sgImg=(c,k)=>SG(c)?`<img class="sg ${k||''}" src="${SG(c)}" alt="${S.lang} sign for ${c}" loading="lazy" onerror="if(this.dataset.fallback!=='1'){this.dataset.fallback='1';this.src='https://raw.githubusercontent.com/shivapreetham/indian-sign-language-detection/main/letters/'+this.alt.slice(-1).toLowerCase()+'.jpg'}else{this.style.display='none'}">`:'';
+const SG=c=>/^[A-Z]$/.test(c)&&S.lang==='ASL'?'https://www.anysign.app/images/alphabet/asl/asl-alphabet-letter-'+c.toLowerCase()+'-american-sign-language-handshape.webp':S.lang==='ISL'&&/^[A-Z]$/.test(c)?'https://raw.githubusercontent.com/shivapreetham/indian-sign-language-detection/main/letters/'+c.toLowerCase()+'.jpg':'';
+const sgImg=(c,k)=>SG(c)?`<img class="sg ${k||''}" src="${SG(c)}" alt="${S.lang} sign for ${c}" loading="lazy" onerror="if(this.dataset.fallback!=='1'){this.dataset.fallback='1';this.src='https://cdn.jsdelivr.net/gh/shivapreetham/indian-sign-language-detection@main/letters/'+this.alt.slice(-1).toLowerCase()+'.jpg'}else{this.outerHTML='<div class=\"sg sgb\" style=\"display:flex;align-items:center;justify-content:center;font-size:12px;text-align:center;padding:8px\">'+this.alt+'</div>'}">` : '';
 const spellImgs=w=>'<div class="row" style="justify-content:center">'+[...w.toUpperCase()].filter(c=>/^[A-Z]$/.test(c)).map(c=>sgImg(c)).join('')+'</div><small>Fingerspelled in '+S.lang+'. This is spelling, not the full sign.</small>';
 function renderChart(){$('#chart').innerHTML=[...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'].map(c=>`<figure onclick="$('#tgt').value='${c}';setTarget();scrollTo(0,0)">${sgImg(c)}<figcaption><b>${c}</b></figcaption></figure>`).join('')}
 const LN={ASL:'AMERICAN SIGN LANGUAGE',ISL:'INDIAN SIGN LANGUAGE'};
@@ -156,12 +156,13 @@ function measure(w){const palm=d3(w[0],w[9]),st=[],ce=[],tD=d3(w[4],w[5])/palm;s
 for(const m of[5,9,13,17]){const s=(ang(w[m],w[m+1],w[m+2])+ang(w[m+1],w[m+2],w[m+3]))/2;st.push(s>140?1:0);ce.push(Math.min(1,Math.abs(s-140)/25))}
 return{st,conf:ce.reduce((a,b)=>a+b)/5,spread:d3(w[8],w[12])/palm,tm:d3(w[4],w[10])/palm}}
 const feat=w=>{const p=d3(w[0],w[9])+1e-9;return w.flatMap(q=>[(q.x-w[0].x)/p,(q.y-w[0].y)/p,(q.z-w[0].z)/p])};
-let SAMP=JSON.parse(localStorage.sbs||'[]');
+const featHands=ws=>{const hs=ws.filter(Boolean).slice().sort((a,b)=>a[0].x-b[0].x);const out=[];for(let i=0;i<2;i++){if(hs[i])out.push(...feat(hs[i]));else out.push(...Array(63).fill(0));}return out};
+let SAMP=JSON.parse(localStorage.sbs||'[]').map(s=>({...s,f:Array.isArray(s.f)&&s.f.length===63?s.f.concat(Array(63).fill(0)):s.f})).filter(s=>Array.isArray(s.f)&&s.f.length===126);
 function knn(f){const ss=SAMP.filter(s=>s.lg===S.lang);if(ss.length<2)return null;
 const ds=ss.map(s=>({l:s.l,d:Math.hypot(...s.f.map((v,i)=>v-f[i]))})).sort((a,b)=>a.d-b.d).slice(0,5),vote={};ds.forEach(x=>vote[x.l]=(vote[x.l]||0)+1);
 const[l,n]=Object.entries(vote).sort((a,b)=>b[1]-a[1])[0],md=ds.filter(x=>x.l===l).reduce((a,x)=>a+x.d,0)/n;
 return md>1.2?{label:null,conf:0}:{label:l,conf:(n/ds.length)*Math.max(0,1-md/1.2)}}
-function classify(lm,w){const m=measure(w),k=knn(feat(w));if(k)return{...k,st:m.st};
+function classify(lm,w,allHands=[]){const m=measure(w),k=knn(featHands(allHands.length?allHands:[w]));if(k)return{...k,st:m.st};
 if(S.lang!=='ASL')return{label:null,conf:0,st:m.st};let hit=null;
 if(!m.st[1]&&!m.st[2]&&!m.st[3]&&!m.st[4])return{label:m.tm<.55?'S':'A',conf:m.conf,st:m.st};
 for(const c in REF){if(REF[c].every((v,i)=>v===m.st[i])){if(c==='U'&&m.spread>.5)continue;if(c==='V'&&m.spread<=.5)continue;hit=c;break}}
@@ -181,10 +182,11 @@ const r=HL.detectForVideo(vid,performance.now());cx.fillStyle='#ff4d6d';
 r.landmarks.forEach(lm=>lm.forEach(p=>{cx.beginPath();cx.arc(p.x*cv.width,p.y*cv.height,4,0,7);cx.fill()}));
 // MediaPipe can return up to two hands. Evaluate every detected hand instead of silently using hand #1 only.
 let best=null,bestW=null;
-for(let i=0;i<r.landmarks.length;i++){const w=r.worldLandmarks[i];if(!w)continue;const cr=classify(r.landmarks[i],w);if(!best||cr.conf>best.conf){best=cr;bestW=w}}
+const worlds=r.worldLandmarks||[];
+for(let i=0;i<r.landmarks.length;i++){const w=worlds[i];if(!w)continue;const cr=classify(r.landmarks[i],w,worlds);if(!best||cr.conf>best.conf){best=cr;bestW=w}}
 onHand(best,bestW,r)}
 raf=requestAnimationFrame(loop)}
-function onHand(r,w,res){if(teach&&w)teachFrame(w);if(cur==='C'){if(teach)return;$('#mode').value==='words'?wordStep(res):commHand(r)}else if(cur==='N'){$('#nmode').value==='words'?wordStep(res):navLetter(r)}else learnHand(r)}
+function onHand(r,w,res){if(teach&&res&&res.worldLandmarks?.length)teachFrame(res.worldLandmarks);if(cur==='C'){if(teach)return;$('#mode').value==='words'?wordStep(res):commHand(r)}else if(cur==='N'){$('#nmode').value==='words'?wordStep(res):navLetter(r)}else learnHand(r)}
 function commHand(r){const L=$('#liveC');if(!r){L.textContent='No hand';$('#confC').textContent='';cand=null;n=0;return}
 if(!r.label){L.textContent='?';$('#confC').textContent=SAMP.some(s=>s.lg===S.lang)||S.lang==='ASL'?'Not recognised. Teach this sign in the Teach panel.':'No '+S.lang+' signs taught yet. Use the Teach panel.';cand=null;n=0;return}
 L.textContent=r.label;$('#confC').textContent='Confidence '+Math.round(r.conf*100)+'% ('+(SAMP.some(s=>s.lg===S.lang)?'your taught samples':'rough built-in rules')+')  Fingers T-I-M-R-P: '+r.st.join('');
@@ -193,8 +195,8 @@ if(n===15){if(r.conf>=.5)$('#out').value+=r.label;else $('#confC').textContent='
 /* teach mode: record your own samples (stored on this device) */
 let teach=null;const tcount=()=>{const c={};SAMP.filter(s=>s.lg===S.lang).forEach(s=>c[s.l]=(c[s.l]||0)+1);$('#tc').textContent=Object.keys(c).length?'Taught ('+S.lang+'): '+Object.entries(c).map(([k,v])=>k+'×'+v).join('  '):'Nothing taught yet for '+S.lang+'.'};
 $('#tl').innerHTML=[...'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'].map(k=>`<option>${k}</option>`).join('');tcount();
-function startTeach(){if(cur!=='C')return alert('Start the camera first.');teach={l:$('#tl').value,n:20,k:0};$('#tc').textContent='Recording '+teach.l+'… keep your hand in view'}
-function teachFrame(w){if(++teach.k%3)return;SAMP.push({l:teach.l,lg:S.lang,f:feat(w).map(v=>+v.toFixed(3))});if(--teach.n<=0){localStorage.sbs=JSON.stringify(SAMP);teach=null;tcount()}}
+function startTeach(){if(cur!=='C')return alert('Start the camera first.');teach={l:$('#tl').value,n:30,k:0};$('#tc').textContent='Recording '+teach.l+'… show the '+S.lang+' sign with your palm facing the camera; keep all visible hands in frame.'}
+function teachFrame(ws){if(++teach.k%2)return;SAMP.push({l:teach.l,lg:S.lang,f:featHands(ws).map(v=>+v.toFixed(3))});if(--teach.n<=0){localStorage.sbs=JSON.stringify(SAMP);teach=null;tcount()}}
 async function guided(){if(cur!=='C')return alert('Start the camera first.');const wait=t=>new Promise(r=>setTimeout(r,t));
 for(const l of[...'ABCDEFGHIKLMNOPQRSTUVWXY']){$('#tl').value=l;for(let c=3;c>0&&cur==='C';c--){$('#tc').textContent='➡️ Show the sign for  '+l+'  in '+c+'…  (hold it steady, tilt slightly)';await wait(1000)}
 if(cur!=='C')return;teach={l,n:20,k:0};while(teach){await wait(100);if(cur!=='C')return}}
@@ -219,12 +221,13 @@ function fspell(){$('#fsOut').innerHTML=[...$('#fs').value.toUpperCase()].filter
 
 /* ---- learn ---- */
 $('#tgt').innerHTML=[...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'].map(k=>`<option>${k}</option>`).join('');
-function setTarget(){const t=$('#tgt').value;$('#desc').textContent=DESC[t]||'Teach this letter first (Communicate, Teach panel) so there is a reference to compare with.';$('#lImg').innerHTML=sgImg(t,'sgb')||'<small>No picture for this one in '+S.lang+'.</small>';$('#fb').textContent='';renderProg()}
+function setTarget(){const t=$('#tgt').value;$('#desc').textContent=DESC[t]||'Use the palm-facing reference below. The picture guides you; the recognizer learns from your live camera samples.';$('#lImg').innerHTML=(sgImg(t,'sgb')||'<small>No reference image loaded for this '+S.lang+' letter.</small>')+'<div style="margin-top:10px"><button onclick="teachTarget()">🎓 Teach '+t+' from camera</button></div>';$('#fb').textContent='';renderProg()}
 function renderProg(){const k=S.lang+':'+$('#tgt').value,p=S.prog[k]||{ok:0,tries:0};$('#prog').innerHTML=`<span class="chip">${S.lang} ${$('#tgt').value}: ${p.ok} matched of ${p.tries} attempts</span>`}
+function teachTarget(){if(cur!=='C')return alert('Start the camera in Communicate first. Then return here and show the selected '+S.lang+' sign.');$('#tl').value=$('#tgt').value;startTeach();}
 let ln=0,lc=null;
 function learnHand(r){const T=$('#tgt').value,L=$('#liveL'),fb=$('#fb');if(!r){L.textContent='No hand';return}L.textContent=r.label||'?';let ok,msg;const taught=SAMP.some(s=>s.lg===S.lang&&s.l===T);
 if(REF[T]&&S.lang==='ASL'&&!taught){const ex=REF[T],bad=ex.map((v,i)=>v!==r.st[i]?i:-1).filter(i=>i>=0);ok=!bad.length;msg=ok?'Finger positions match the rough reference.':'Adjust: '+bad.map(i=>(ex[i]?'extend ':'curl ')+FN[i]).join(', ')+'.'}
-else{ok=r.label===T;msg=ok?'Matches your taught sample ('+Math.round(r.conf*100)+'% similarity).':taught?'Not matching yet. The app sees '+(r.label||'an unknown shape')+'.':'No samples for '+T+' yet. Teach it in Communicate first.'}
+else{ok=r.label===T;msg=ok?'Matches your taught sample ('+Math.round(r.conf*100)+'% similarity).':taught?'Not matching yet. The app sees '+(r.label||'an unknown shape')+'.':'This letter is not trained on this device yet. Press “Teach '+T+' from camera” and hold the '+S.lang+' sign in view.'}
 fb.textContent=(ok?'✅ ':'🔁 ')+msg;const key=r.label+'|'+ok;if(key===lc)ln++;else{lc=key;ln=1}
 if(ln===20){const k=S.lang+':'+T,p=S.prog[k]||(S.prog[k]={ok:0,tries:0});p.tries++;if(ok)p.ok++;save();renderProg();ln=-20}}
 setTarget();renderChart();
@@ -357,7 +360,7 @@ async function near(k){
   if(!s){
     const q=encodeURIComponent(label+' near me');
     nm('Device location was unavailable. Opening Google Maps nearby search…');
-    window.location.assign('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(label+' near '+s[0]+','+s[1]));
+    window.location.assign('https://www.google.com/maps/search/?api=1&query='+q);
     return;
   }
   try{

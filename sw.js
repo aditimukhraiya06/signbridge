@@ -1,4 +1,4 @@
-const C='signbridge-v6-isl-images-location';
+const C='signbridge-v7-isl-twohand-location';
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(C).then(c=>c.addAll(['/','/index.html','/manifest.json','/icon.svg'])))});
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))).then(()=>clients.claim())));
 // Network first (so updates and new models appear), cache as offline fallback. Map tiles/APIs are not cached.
