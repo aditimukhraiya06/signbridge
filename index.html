@@ -233,7 +233,56 @@ document.querySelectorAll('#phr .tile').forEach(b=>b.onclick=()=>{const i=+b.dat
 function card(t){$('#ovt').textContent=t;$('#ov').classList.add('on')}
 function addPhrase(){const v=$('#np').value.trim();if(!v)return;S.phr.push(v);save();$('#np').value='';renderPhr()}
 let here=null;
-function locate(){const o=$('#loc');o.textContent='Locating…';navigator.geolocation.getCurrentPosition(p=>{here=p.coords;o.innerHTML=`Lat ${here.latitude.toFixed(5)}, Lon ${here.longitude.toFixed(5)} (±${Math.round(here.accuracy)} m)<br><a target="_blank" rel="noopener" href="${link()}">Open in OpenStreetMap</a>${navigator.share?' <button onclick="shareLoc()">Share…</button>':''}`;renderCts()},e=>o.textContent=e.code===1?'Location permission denied. Allow it in browser settings.':'Could not get location: '+e.message,{enableHighAccuracy:true,timeout:15000})}
+const LOC_KEY='signbridge-last-location';
+
+function saveLocation(c){
+  here=c;
+  try{localStorage.setItem(LOC_KEY,JSON.stringify({
+    latitude:c.latitude,longitude:c.longitude,accuracy:c.accuracy||0,at:Date.now()
+  }))}catch(e){}
+}
+function cachedLocation(){
+  try{
+    const c=JSON.parse(localStorage.getItem(LOC_KEY)||'null');
+    return c&&Number.isFinite(c.latitude)&&Number.isFinite(c.longitude)?c:null;
+  }catch(e){return null}
+}
+function locationText(c,stale=false){
+  return `Lat ${c.latitude.toFixed(5)}, Lon ${c.longitude.toFixed(5)} (±${Math.round(c.accuracy||0)} m)`+
+    (stale?' <span style="opacity:.75">• last known location</span>':'');
+}
+function showLocation(c,stale=false){
+  here=c;
+  const o=$('#loc');
+  o.innerHTML=locationText(c,stale)+`<br><a target="_blank" rel="noopener" href="${link()}">Open in OpenStreetMap</a>`+
+    `${navigator.share?' <button onclick="shareLoc()">Share…</button>':''}`;
+  renderCts();
+}
+function locate(){
+  const o=$('#loc');
+  const cached=cachedLocation();
+  if(cached) showLocation(cached,true);
+  else o.textContent='Locating…';
+
+  if(!navigator.geolocation){
+    o.textContent=cached?'Using your last saved location. This browser does not provide device location.':
+      'Location is not available in this browser.';
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    p=>{saveLocation(p.coords);showLocation(p.coords,false)},
+    e=>{
+      if(cached){showLocation(cached,true);return}
+      o.textContent=e.code===1
+        ?'Location permission denied. Allow Location for this site in browser settings.'
+        :e.code===2
+          ?'Device location is temporarily unavailable. Turn on Location/GPS and try again.'
+          :'Location request timed out. Try again.';
+    },
+    {enableHighAccuracy:false,timeout:30000,maximumAge:60000}
+  );
+}
 const link=()=>`https://www.openstreetmap.org/?mlat=${here.latitude}&mlon=${here.longitude}#map=18/${here.latitude}/${here.longitude}`;
 const shareLoc=()=>navigator.share({title:'My location',text:'I am deaf and need help. My location:',url:link()});
 function addContact(){const n=$('#cn').value.trim(),p=$('#cp').value.trim();if(!n||!p)return;S.contacts.push({n,p});save();$('#cn').value=$('#cp').value='';renderCts()}
@@ -245,9 +294,43 @@ let map,me,meM,dest,line,route,si=0,wid,lay;
 const nm=t=>{$('#navmsg').textContent=t||''};
 function navMode(m){$('#out2').style.display=m==='out'?'':'none';$('#in2').style.display=m==='in'?'':'none';$('#tOut').className=m==='out'?'pri':'';$('#tIn').className=m==='in'?'pri':'';if(m==='out')setTimeout(()=>map&&map.invalidateSize(),50)}
 function initMap(){if(map)return;map=L.map('map').setView([28.47,77.5],13);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors',maxZoom:19}).addTo(map);lay=L.layerGroup().addTo(map);findMe()}
-function findMe(){if(!navigator.geolocation)return nm('This browser cannot give your location. Search a place, or move the map: routes will start from the map centre.');nm('Finding your location…');if(wid)navigator.geolocation.clearWatch(wid);
-wid=navigator.geolocation.watchPosition(p=>{me=[p.coords.latitude,p.coords.longitude];if(!meM){meM=L.circleMarker(me,{radius:8}).addTo(map);map.setView(me,16);nm('Location found (about '+Math.round(p.coords.accuracy)+' m accuracy).')}else meM.setLatLng(me);track()},e=>nm(e.code===1?'Location is blocked. Tap the lock icon next to the web address, allow Location, then tap Find me.':'Could not get your location ('+e.message+'). You can still search and route from the map centre.'),{enableHighAccuracy:true,timeout:20000,maximumAge:5000})}
-const start=()=>me||(()=>{const c=map.getCenter();return[c.lat,c.lng]})();
+function findMe(){
+  const cached=cachedLocation();
+  if(cached){
+    me=[cached.latitude,cached.longitude];
+    if(!meM)meM=L.circleMarker(me,{radius:8}).addTo(map);else meM.setLatLng(me);
+    map.setView(me,16);
+    nm('Using your last known location while checking for a fresh location…');
+  }else{
+    if(!navigator.geolocation)return nm('Device location is unavailable. Search a place or move the map to choose a starting point.');
+    nm('Finding your location…');
+  }
+  if(!navigator.geolocation)return;
+  if(wid)navigator.geolocation.clearWatch(wid);
+  wid=navigator.geolocation.watchPosition(
+    p=>{
+      saveLocation(p.coords);
+      me=[p.coords.latitude,p.coords.longitude];
+      if(!meM){meM=L.circleMarker(me,{radius:8}).addTo(map);map.setView(me,16)}
+      else meM.setLatLng(me);
+      nm('Location found (about '+Math.round(p.coords.accuracy||0)+' m accuracy).');
+      track();
+    },
+    e=>{
+      if(me){
+        nm(e.code===1
+          ?'Location permission is blocked. Using your last known location.'
+          :'Fresh device location is unavailable. Using your last known location.');
+      }else{
+        nm(e.code===1
+          ?'Location is blocked. Allow Location for this site, then tap Find me.'
+          :'Device location is temporarily unavailable. Turn on Location/GPS and tap Find me again.');
+      }
+    },
+    {enableHighAccuracy:false,timeout:30000,maximumAge:60000}
+  );
+}
+const start=()=>me||(()=>{const c=cachedLocation();if(c)return[c.latitude,c.longitude];const m=map.getCenter();return[m.lat,m.lng]})();
 $('#fac').innerHTML=[['amenity=toilets','🚻 Toilet'],['amenity=hospital','🏥 Hospital'],['amenity=pharmacy','💊 Pharmacy'],['amenity=restaurant','🍴 Food'],['highway=bus_stop','🚌 Bus stop'],['amenity=atm','🏧 ATM'],['amenity=police','👮 Police']].map(([k,l])=>`<button class="pri" style="font-size:17px" onclick="near('${k}')">${l}</button>`).join('');
 async function ovp(q){for(const u of['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter']){try{const r=await fetch(u,{method:'POST',body:q});if(r.ok)return(await r.json()).elements}catch(e){}}throw 0}
 async function near(k){const s=start();lay.clearLayers();nm('Looking for the nearest '+k.split('=')[1].replace('_',' ')+'…');
