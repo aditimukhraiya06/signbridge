@@ -41,7 +41,7 @@ nav button{flex:1;border:0;border-radius:0;min-height:62px;font-size:12px;backgr
 #ov.on{display:flex}#ov p{font-size:clamp(28px,7vw,64px);font-weight:800;margin:0 0 24px}
 #map{height:380px;border-radius:18px;border:3px solid #6c3df5}#arrow{font-size:80px;line-height:1}
 svg text{font:12px system-ui;fill:#241a3a;pointer-events:none}.room{fill:#e5dcff;stroke:#6c3df5;cursor:pointer}.room.sel{fill:#ffd166}#plan{background:#fff!important}
-.sg{width:92px;height:92px;object-fit:contain;background:#fff;border-radius:12px;border:2px solid var(--line);padding:4px}.sgb{width:150px;height:150px;margin-bottom:6px}#chart figure{margin:0;text-align:center;cursor:pointer}
+.sg{width:92px;height:92px;object-fit:contain;background:#fff;border-radius:12px;border:2px solid var(--line);padding:4px;filter:grayscale(1)}.sgb{width:150px;height:150px;margin-bottom:6px}#chart figure{margin:0;text-align:center;cursor:pointer}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -87,7 +87,7 @@ svg text{font:12px system-ui;fill:#241a3a;pointer-events:none}.room{fill:#e5dcff
 <div id="lImg"></div><p id="desc"></p><div class="big" id="liveL">–</div><div id="fb" style="min-height:48px"></div>
 <div id="prog"></div></div></div>
 <div class="note">Feedback compares finger positions measured from camera landmarks. It shows visual similarity to a simple reference, not linguistic correctness. Palm orientation and movement are not measured.</div>
-<div class="card"><b>ASL alphabet pictures</b> <small>(tap a letter to practise it)</small><div class="row" id="chart"></div><div class="note">J and Z are signed with movement, so a still picture only shows the starting shape. Pictures come from Wikimedia Commons and need internet.</div></div>
+<div class="card"><b id="alphaTitle">ASL alphabet pictures</b> <small>(tap a letter to practise it)</small><div class="row" id="chart"></div><div class="note" id="alphaNote">J and Z are signed with movement, so a still picture only shows the starting shape.</div></div>
 </section>
 
 <section id="emg"><h2>Emergency</h2>
@@ -122,15 +122,15 @@ function setTh(t){document.documentElement.dataset.theme=t;localStorage.th=t;$('
 setTh(localStorage.th||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'));$('#th').onclick=()=>setTh(document.documentElement.dataset.theme==='dark'?'light':'dark');
 const S=Object.assign({lang:'ASL',contacts:[],phr:[],hist:[],prog:{}},JSON.parse(localStorage.sb||'{}'));
 const save=()=>localStorage.sb=JSON.stringify(S);
-const SG=c=>/^[A-Z]$/.test(c)&&S.lang==='ASL'?'https://commons.wikimedia.org/wiki/Special:FilePath/Sign_language_'+c+'.svg?width=300':'';
-const sgImg=(c,k)=>SG(c)?`<img class="sg ${k||''}" src="${SG(c)}" alt="ASL sign for ${c}" loading="lazy" onerror="this.style.display='none'">`:'';
-const spellImgs=w=>S.lang==='ASL'?'<div class="row" style="justify-content:center">'+[...w].map(c=>sgImg(c)).join('')+'</div><small>Fingerspelled in ASL. This is spelling, not the full sign.</small>':'';
-function renderChart(){$('#chart').innerHTML=S.lang==='ASL'?[...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'].map(c=>`<figure onclick="$('#tgt').value='${c}';setTarget();scrollTo(0,0)">${sgImg(c)}<figcaption><b>${c}</b></figcaption></figure>`).join(''):'<small>Alphabet pictures are only included for ASL. The ISL alphabet is different, so teach it with the Teach panel.</small>'}
+const SG=c=>/^[A-Z]$/.test(c)&&S.lang==='ASL'?'https://commons.wikimedia.org/wiki/Special:FilePath/Sign_language_'+c+'.svg?width=300':S.lang==='ISL'&&/^[A-Z]$/.test(c)?'https://raw.githubusercontent.com/shivapreetham/indian-sign-language-detection/main/letters/'+c.toLowerCase()+'.jpg':'';
+const sgImg=(c,k)=>SG(c)?`<img class="sg ${k||''}" src="${SG(c)}" alt="${S.lang} sign for ${c}" loading="lazy" onerror="this.style.display='none'">`:'';
+const spellImgs=w=>'<div class="row" style="justify-content:center">'+[...w.toUpperCase()].filter(c=>/^[A-Z]$/.test(c)).map(c=>sgImg(c)).join('')+'</div><small>Fingerspelled in '+S.lang+'. This is spelling, not the full sign.</small>';
+function renderChart(){$('#chart').innerHTML=[...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'].map(c=>`<figure onclick="$('#tgt').value='${c}';setTarget();scrollTo(0,0)">${sgImg(c)}<figcaption><b>${c}</b></figcaption></figure>`).join('')}
 const LN={ASL:'AMERICAN SIGN LANGUAGE',ISL:'INDIAN SIGN LANGUAGE'};
 function go(t){document.querySelectorAll('section').forEach(s=>s.classList.toggle('on',s.id===t));document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));stopCam();if(t==='nav')initMap();scrollTo(0,0)}
 const net=()=>$('#net').textContent=navigator.onLine?'Online':'Offline: emergency tools still work';addEventListener('online',net);addEventListener('offline',net);net();
 $('#lang').value=S.lang;$('#lang').onchange=e=>{S.lang=e.target.value;save();langNote();setTarget();renderChart();tcount()};
-function langNote(){$('#noteC').textContent='Letters mode uses the signs you taught ('+S.lang+'). ASL also has 10 rough built-in letters. Words mode needs a trained model in models/'+S.lang.toLowerCase()+'/.'}langNote();
+function langNote(){$('#noteC').textContent='Letters mode uses the signs you taught ('+S.lang+'). '+S.lang+' has its own alphabet reference images. Words mode needs a trained model in models/'+S.lang.toLowerCase()+'/.';$('#alphaTitle').textContent=S.lang+' alphabet pictures';$('#alphaNote').textContent=S.lang==='ASL'?'J and Z are signed with movement, so a still picture only shows the starting shape.':'These are Indian Sign Language (ISL) fingerspelling references. Some letters use two hands.';renderChart()}langNote();
 
 /* ---- speech ---- */
 function say(t){if(!t||!window.speechSynthesis)return alert('Text to speech is not supported on this device.');speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.rate=+$('#rate').value;const v=speechSynthesis.getVoices().find(v=>v.name===$('#voice').value);if(v)u.voice=v;speechSynthesis.speak(u)}
@@ -330,13 +330,28 @@ function findMe(){
     {enableHighAccuracy:false,timeout:30000,maximumAge:60000}
   );
 }
-const start=()=>me||(()=>{const c=cachedLocation();if(c)return[c.latitude,c.longitude];const m=map.getCenter();return[m.lat,m.lng]})();
+const start=()=>me||(()=>{const c=cachedLocation();if(c)return[c.latitude,c.longitude];return null})();
+async function ensureLocation(){
+  if(me)return me;
+  const c=cachedLocation();
+  if(c){me=[c.latitude,c.longitude];return me}
+  if(!navigator.geolocation)return null;
+  return await new Promise(resolve=>navigator.geolocation.getCurrentPosition(
+    p=>{saveLocation(p.coords);me=[p.coords.latitude,p.coords.longitude];resolve(me)},
+    ()=>resolve(null),
+    {enableHighAccuracy:true,timeout:10000,maximumAge:30000}
+  ));
+}
 $('#fac').innerHTML=[['amenity=toilets','🚻 Toilet'],['amenity=hospital','🏥 Hospital'],['amenity=pharmacy','💊 Pharmacy'],['amenity=restaurant','🍴 Food'],['highway=bus_stop','🚌 Bus stop'],['amenity=atm','🏧 ATM'],['amenity=police','👮 Police']].map(([k,l])=>`<button class="pri" style="font-size:17px" onclick="near('${k}')">${l}</button>`).join('');
 async function ovp(q){for(const u of['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter']){try{const r=await fetch(u,{method:'POST',body:q});if(r.ok)return(await r.json()).elements}catch(e){}}throw 0}
-async function near(k){const s=start();lay.clearLayers();nm('Looking for the nearest '+k.split('=')[1].replace('_',' ')+'…');
-try{const els=await ovp(`[out:json][timeout:20];nwr(around:2500,${s[0]},${s[1]})[${k}];out center 30;`);if(!els.length)return nm('Nothing of that kind within 2.5 km on OpenStreetMap. Move the map to another area and try again.');
-const e=els.map(e=>({la:e.lat||e.center.lat,lo:e.lon||e.center.lon,n:(e.tags.name||k.split('=')[1]).replace(/</g,'')})).sort((a,b)=>L.latLng(s).distanceTo([a.la,a.lo])-L.latLng(s).distanceTo([b.la,b.lo]))[0];
-L.marker([e.la,e.lo]).addTo(lay).bindPopup(e.n).openPopup();nm('Nearest: '+e.n+(me?'':' (measured from the map centre)'));routeTo(e.la,e.lo)}catch(x){nm('Could not reach the map data service. Check your internet and try again in a moment.')}}
+async function near(k){const s=await ensureLocation();lay.clearLayers();nm('Finding the nearest '+k.split('=')[1].replace('_',' ')+'…');
+if(!s){nm('I could not get your device location. Opening a nearby search in Google Maps…');window.location.assign('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(k.split('=')[1].replace('_',' ')+' near me'));return}
+try{const els=await ovp(`[out:json][timeout:25];nwr(around:10000,${s[0]},${s[1]})[${k}];out center 100;`);if(!els.length)return nm('No matching place was found within 10 km. Try Search or move the map.');
+const base=L.latLng(s);const e=els.map(e=>({la:e.lat??e.center?.lat,lo:e.lon??e.center?.lon,n:(e.tags?.name||k.split('=')[1]).replace(/</g,'')})).filter(e=>Number.isFinite(e.la)&&Number.isFinite(e.lo)).sort((a,b)=>base.distanceTo([a.la,a.lo])-base.distanceTo([b.la,b.lo]))[0];
+if(!e)return nm('No usable location was returned. Try again.');
+const d=Math.round(base.distanceTo([e.la,e.lo]));L.marker([e.la,e.lo]).addTo(lay).bindPopup(`<b>${e.n}</b><br>${d} m away`).openPopup();map.setView([e.la,e.lo],16);nm('Nearest '+NN[k]+' found: '+e.n+' ('+d+' m). Opening walking directions…');
+const origin=encodeURIComponent(`${s[0]},${s[1]}`),destination=encodeURIComponent(`${e.la},${e.lo}`);window.location.assign(`https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=walking`);
+}catch(x){nm('Could not find the nearest place right now. Check your internet and try again.')}}
 async function geo(q){try{const r=await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&q='+encodeURIComponent(q));if(r.ok){const j=await r.json();if(j.length)return j.map(x=>({la:+x.lat,lo:+x.lon,n:x.display_name}))}}catch(e){}
 const c=map.getCenter(),r=await fetch('https://photon.komoot.io/api/?limit=6&lat='+c.lat+'&lon='+c.lng+'&q='+encodeURIComponent(q)),j=await r.json();return j.features.map(f=>({la:f.geometry.coordinates[1],lo:f.geometry.coordinates[0],n:[f.properties.name,f.properties.city,f.properties.country].filter(Boolean).join(', ')}))}
 async function search(){const q=$('#q').value.trim();if(!q)return;nm('Searching…');try{const j=await geo(q);if(!j.length)return nm('No results for "'+q+'". Try a more specific name or add the city.');lay.clearLayers();
