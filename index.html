@@ -41,29 +41,8 @@ nav button{flex:1;border:0;border-radius:0;min-height:62px;font-size:12px;backgr
 #ov.on{display:flex}#ov p{font-size:clamp(28px,7vw,64px);font-weight:800;margin:0 0 24px}
 #map{height:380px;border-radius:18px;border:3px solid #6c3df5}#arrow{font-size:80px;line-height:1}
 svg text{font:12px system-ui;fill:#241a3a;pointer-events:none}.room{fill:#e5dcff;stroke:#6c3df5;cursor:pointer}.room.sel{fill:#ffd166}#plan{background:#fff!important}
+.sg{width:92px;height:92px;object-fit:contain;background:#fff;border-radius:12px;border:2px solid var(--line);padding:4px}.sgb{width:150px;height:150px;margin-bottom:6px}#chart figure{margin:0;text-align:center;cursor:pointer}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-
-/* Persistent developer credit */
-#developer-credit{
-  position:fixed;
-  right:12px;
-  bottom:70px;
-  z-index:7;
-  max-width:calc(100vw - 24px);
-  padding:8px 13px;
-  border:1px solid var(--line);
-  border-radius:999px;
-  background:var(--card);
-  color:var(--ink);
-  box-shadow:0 4px 16px #241a3a22;
-  font:600 12px/1.3 "Segoe UI",system-ui,-apple-system,sans-serif;
-  text-align:center;
-  pointer-events:none;
-}
-@media(max-width:480px){
-  #developer-credit{right:8px;bottom:68px;font-size:11px;padding:7px 10px}
-}
-
 </style>
 </head>
 <body>
@@ -79,6 +58,7 @@ svg text{font:12px system-ui;fill:#241a3a;pointer-events:none}.room{fill:#e5dcff
 <button class="tile" style="background:var(--rl)" onclick="go('emg')"><div style="font-size:26px">🛡️</div><h3>Emergency</h3><span>Phrases, contacts, location. Works offline.</span></button>
 <button class="tile" style="background:var(--pl)" onclick="go('nav')"><div style="font-size:26px">📍</div><h3>SmartNav</h3><span>Outdoor routes and a demo campus indoor map.</span></button>
 </div>
+<div class="card" style="margin-top:16px"><b>What works today</b><p>Hand tracking runs on your camera. <b>Letters:</b> teach the app your own hand shapes (A–Z) in Communicate → Teach. <b>Words:</b> switch to Words mode after you train a model with the Colab notebook and upload the <code>models/</code> folder. No model means no words; nothing is faked.</p><p>ASL and ISL each have their own samples and their own model.</p></div>
 </section>
 
 <section id="comm"><h2>Communicate</h2>
@@ -104,9 +84,10 @@ svg text{font:12px system-ui;fill:#241a3a;pointer-events:none}.room{fill:#e5dcff
 <div class="cam"><video id="vL" playsinline muted></video><canvas id="cL"></canvas></div>
 <div class="row"><button class="pri" id="bL" onclick="toggleCam('L')">Start camera</button><span id="stL" class="chip">Camera off</span></div></div>
 <div class="card"><label for="tgt"><b>Sign to practise</b></label><select id="tgt" onchange="setTarget()"></select>
-<p id="desc"></p><div class="big" id="liveL">–</div><div id="fb" style="min-height:48px"></div>
+<div id="lImg"></div><p id="desc"></p><div class="big" id="liveL">–</div><div id="fb" style="min-height:48px"></div>
 <div id="prog"></div></div></div>
 <div class="note">Feedback compares finger positions measured from camera landmarks. It shows visual similarity to a simple reference, not linguistic correctness. Palm orientation and movement are not measured.</div>
+<div class="card"><b>ASL alphabet pictures</b> <small>(tap a letter to practise it)</small><div class="row" id="chart"></div><div class="note">J and Z are signed with movement, so a still picture only shows the starting shape. Pictures come from Wikimedia Commons and need internet.</div></div>
 </section>
 
 <section id="emg"><h2>Emergency</h2>
@@ -131,7 +112,6 @@ svg text{font:12px system-ui;fill:#241a3a;pointer-events:none}.room{fill:#e5dcff
 </main>
 <div id="ov"><p id="ovt"></p><div class="row"><button class="pri" onclick="say(ovt.textContent)">🔊 Speak</button><button onclick="ov.classList.remove('on')">Close</button></div></div>
 <nav><button data-t="home" class="on" onclick="go('home')">🏠<br>Home</button><button data-t="comm" onclick="go('comm')">💬<br>Communicate</button><button data-t="learn" onclick="go('learn')">🎓<br>Learn</button><button data-t="emg" onclick="go('emg')">🛡️<br>Emergency</button><button data-t="nav" onclick="go('nav')">📍<br>Navigate</button></nav>
-<div id="developer-credit" role="note" aria-label="Developed by Aditi and Shaheen">Developed by: Aditi &amp; Shaheen</div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 const $=s=>document.querySelector(s);
@@ -139,10 +119,13 @@ function setTh(t){document.documentElement.dataset.theme=t;localStorage.th=t;$('
 setTh(localStorage.th||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'));$('#th').onclick=()=>setTh(document.documentElement.dataset.theme==='dark'?'light':'dark');
 const S=Object.assign({lang:'ASL',contacts:[],phr:[],hist:[],prog:{}},JSON.parse(localStorage.sb||'{}'));
 const save=()=>localStorage.sb=JSON.stringify(S);
+const SG=c=>/^[A-Z]$/.test(c)&&S.lang==='ASL'?'https://commons.wikimedia.org/wiki/Special:FilePath/Sign_language_'+c+'.svg?width=300':'';
+const sgImg=(c,k)=>SG(c)?`<img class="sg ${k||''}" src="${SG(c)}" alt="ASL sign for ${c}" loading="lazy" onerror="this.style.display='none'">`:'';
+function renderChart(){$('#chart').innerHTML=S.lang==='ASL'?[...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'].map(c=>`<figure onclick="$('#tgt').value='${c}';setTarget();scrollTo(0,0)">${sgImg(c)}<figcaption><b>${c}</b></figcaption></figure>`).join(''):'<small>Alphabet pictures are only included for ASL. The ISL alphabet is different, so teach it with the Teach panel.</small>'}
 const LN={ASL:'AMERICAN SIGN LANGUAGE',ISL:'INDIAN SIGN LANGUAGE'};
 function go(t){document.querySelectorAll('section').forEach(s=>s.classList.toggle('on',s.id===t));document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));stopCam();if(t==='nav')initMap();scrollTo(0,0)}
 const net=()=>$('#net').textContent=navigator.onLine?'Online':'Offline: emergency tools still work';addEventListener('online',net);addEventListener('offline',net);net();
-$('#lang').value=S.lang;$('#lang').onchange=e=>{S.lang=e.target.value;save();langNote()};
+$('#lang').value=S.lang;$('#lang').onchange=e=>{S.lang=e.target.value;save();langNote();setTarget();renderChart();tcount()};
 function langNote(){$('#noteC').textContent='Letters mode uses the signs you taught ('+S.lang+'). ASL also has 10 rough built-in letters. Words mode needs a trained model in models/'+S.lang.toLowerCase()+'/.'}langNote();
 
 /* ---- speech ---- */
@@ -225,11 +208,11 @@ L.textContent=m.labels[i];$('#confC').textContent=Math.round(p[i]*100)+'% (word 
 if(p[i]>=.6&&Date.now()-lastW>2500){lastW=Date.now();$('#out').value+=($('#out').value&&!$('#out').value.endsWith(' ')?' ':'')+m.labels[i]+' ';buf=[]}}
 
 /* ---- text to fingerspelling ---- */
-function fspell(){$('#fsOut').innerHTML=[...$('#fs').value.toUpperCase()].filter(c=>c!==' ').map(c=>`<div class="card" style="width:140px;margin:0" title="${DESC[c]||''}"><div class="big" style="font-size:32px;min-height:0">${c.replace(/</g,'')}</div><small>${DESC[c]||'Description not in demo set'}</small></div>`).join('')}
+function fspell(){$('#fsOut').innerHTML=[...$('#fs').value.toUpperCase()].filter(c=>c!==' ').map(c=>`<div class="card" style="width:140px;margin:0;text-align:center" title="${DESC[c]||''}">${sgImg(c)}<div class="big" style="font-size:32px;min-height:0">${c.replace(/</g,'')}</div><small>${DESC[c]||'Description not in demo set'}</small></div>`).join('')}
 
 /* ---- learn ---- */
 $('#tgt').innerHTML=[...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'].map(k=>`<option>${k}</option>`).join('');
-function setTarget(){const t=$('#tgt').value;$('#desc').textContent=DESC[t]||'Teach this letter first (Communicate, Teach panel) so there is a reference to compare with.';$('#fb').textContent='';renderProg()}
+function setTarget(){const t=$('#tgt').value;$('#desc').textContent=DESC[t]||'Teach this letter first (Communicate, Teach panel) so there is a reference to compare with.';$('#lImg').innerHTML=sgImg(t,'sgb')||'<small>No picture for this one in '+S.lang+'.</small>';$('#fb').textContent='';renderProg()}
 function renderProg(){const k=S.lang+':'+$('#tgt').value,p=S.prog[k]||{ok:0,tries:0};$('#prog').innerHTML=`<span class="chip">${S.lang} ${$('#tgt').value}: ${p.ok} matched of ${p.tries} attempts</span>`}
 let ln=0,lc=null;
 function learnHand(r){const T=$('#tgt').value,L=$('#liveL'),fb=$('#fb');if(!r){L.textContent='No hand';return}L.textContent=r.label||'?';let ok,msg;const taught=SAMP.some(s=>s.lg===S.lang&&s.l===T);
@@ -237,7 +220,7 @@ if(REF[T]&&S.lang==='ASL'&&!taught){const ex=REF[T],bad=ex.map((v,i)=>v!==r.st[i
 else{ok=r.label===T;msg=ok?'Matches your taught sample ('+Math.round(r.conf*100)+'% similarity).':taught?'Not matching yet. The app sees '+(r.label||'an unknown shape')+'.':'No samples for '+T+' yet. Teach it in Communicate first.'}
 fb.textContent=(ok?'✅ ':'🔁 ')+msg;const key=r.label+'|'+ok;if(key===lc)ln++;else{lc=key;ln=1}
 if(ln===20){const k=S.lang+':'+T,p=S.prog[k]||(S.prog[k]={ok:0,tries:0});p.tries++;if(ok)p.ok++;save();renderProg();ln=-20}}
-setTarget();
+setTarget();renderChart();
 
 /* ---- emergency ---- */
 const BASE=['I need medical assistance.','Please call an ambulance.','I am unable to speak.','I need help immediately.','I am lost.','Please contact my emergency contact.','I need an interpreter.','Please call the police.','There is a fire. Please call the fire service.'];
