@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Sign Your Way</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#1f4fa3">
+<meta name="theme-color" content="#b56bd9">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 :root{--bg:#fff4fb;--bg2:#e9f4ff;--card:#fff;--ink:#241a3a;--mut:#6b5f86;--line:#eadcf7;--blue:#6c3df5;--bl:linear-gradient(135deg,#6c3df5,#3da5ff);--gl:linear-gradient(135deg,#12c28a,#a3e635);--rl:linear-gradient(135deg,#ff4d6d,#ff9a3d);--pl:linear-gradient(135deg,#d946ef,#6c3df5)}
@@ -92,6 +92,34 @@ div.sg,img.sg{border:2px solid transparent;background:linear-gradient(#fff,#fff)
 @keyframes fall{to{transform:translateY(105vh) rotate(720deg);opacity:.8}}
 select:focus,input:focus{border-color:var(--neon1);box-shadow:0 0 0 3px #7c3aed33}
 body{padding-bottom:96px}
+
+/* ===== single lavender-pink theme, no ambient motion ===== */
+:root{--accent:#b56bd9;--accent-dark:#9a4fc2;--neon1:#b56bd9;--neon2:#b56bd9;--neon3:#b56bd9;--bl:#b56bd9;--gl:#b56bd9;--rl:#b56bd9;--pl:#b56bd9;--blue:#9a4fc2;--line:#ecd9f6;--glass:rgba(255,255,255,.8)}
+[data-theme=dark]{--accent:#c48ae8;--accent-dark:#dcb4f4;--neon1:#c48ae8;--neon2:#c48ae8;--neon3:#c48ae8;--bl:#a85fd0;--gl:#a85fd0;--rl:#a85fd0;--pl:#a85fd0;--blue:#dcb4f4;--line:#4a3470;--glass:rgba(36,27,69,.8)}
+body{background:linear-gradient(160deg,#fdeef8,#f3eaff) fixed}
+[data-theme=dark] body{background:linear-gradient(160deg,#1d1233,#271a47) fixed}
+body::before{background-image:linear-gradient(#b56bd912 1px,transparent 1px),linear-gradient(90deg,#b56bd912 1px,transparent 1px)}
+.o1{background:#f0a6d8}.o2{background:#d9b8f5}.o3{background:#e8b4e0}.orb{opacity:.3}
+.logo,.heroTag,.hero1,.orb,button.pri,.cam.live,.tile>div:first-child,.big.pop{animation:none!important}
+.logo{background:var(--accent);box-shadow:none}
+header{border-image:none;border-bottom:2px solid var(--accent)}
+header b,h1,h2,.hero1,.big{background:none!important;-webkit-text-fill-color:currentColor;color:var(--accent-dark)!important;filter:none}
+.heroTag{background:var(--accent);box-shadow:none}
+.card{background:var(--glass);border:2px solid var(--line);box-shadow:0 6px 20px #b56bd91f}
+.card:hover,.tile:hover,#chart figure:hover,button:hover{transform:none;box-shadow:0 6px 20px #b56bd933}
+.tile{background:var(--accent)!important;box-shadow:0 8px 24px #b56bd944}.tile::after{display:none}
+button.pri,button.pri:hover{background:var(--accent);background-image:none;box-shadow:0 4px 14px #b56bd955;color:#fff}
+button.dan{background:#d9609f;background-image:none;box-shadow:0 4px 14px #d9609f55}
+.chipbtn{border-color:var(--accent);background:#b56bd914}.chipbtn:hover{background:var(--accent);color:#fff}
+.chip{background:#b56bd91f;border-color:#b56bd966}
+.cam{border:3px solid var(--accent);box-shadow:none}.cam.live{border-color:#e06fb0;box-shadow:0 0 0 3px #e06fb044}
+#map,#cmap{height:380px;border-radius:18px;border:3px solid var(--accent)}
+nav{border:2px solid var(--accent);background:var(--glass);box-shadow:0 8px 24px #b56bd933}
+nav button.on{color:var(--accent-dark);background:#b56bd91f;text-shadow:none}nav button:hover{transform:none}
+.credit{background:var(--accent);box-shadow:none}
+div.sg,img.sg{border:2px solid var(--line);background:#fff;box-shadow:none}
+select:focus,input:focus{border-color:var(--accent);box-shadow:0 0 0 3px #b56bd933}
+.note{border-left-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -99,13 +127,13 @@ body{padding-bottom:96px}
 <button id="th" aria-label="Toggle dark mode" style="min-height:36px">🌙</button><select id="lang" style="width:auto" aria-label="Sign language"><option value="ASL">ASL</option><option value="ISL">ISL</option></select></header>
 <main>
 <section id="home" class="on">
-<div class="heroTag">💻 Built by two future engineers · Aditi &amp; Shaheen ✨</div><h1 class="hero1">Communication without barriers.</h1>
+<div class="heroTag">💻 Built by two engineering girls · Aditi &amp; Shaheen ✨</div><h1 class="hero1">Communication without barriers.</h1>
 <p style="color:var(--mut)">One accessibility assistant for communication, learning, emergency support and navigation.</p>
 <div class="grid">
 <button class="tile" style="background:var(--bl)" onclick="go('comm')"><div style="font-size:26px">💬</div><h3>Sign2Sign</h3><span>Live sign, text and speech translation.</span></button>
 <button class="tile" style="background:var(--gl)" onclick="go('learn')"><div style="font-size:26px">🎓</div><h3>SignLearn</h3><span>Practice fingerspelling with camera feedback.</span></button>
 <button class="tile" style="background:var(--rl)" onclick="go('emg')"><div style="font-size:26px">🛡️</div><h3>Emergency</h3><span>Phrases, contacts, location. Works offline.</span></button>
-<button class="tile" style="background:var(--pl)" onclick="go('nav')"><div style="font-size:26px">📍</div><h3>SmartNav</h3><span>Outdoor routes and a demo campus indoor map.</span></button>
+<button class="tile" style="background:var(--pl)" onclick="go('nav')"><div style="font-size:26px">📍</div><h3>SmartNav</h3><span>Outdoor routes and the JIIT Noida campus map.</span></button>
 </div>
 
 </section>
@@ -148,7 +176,7 @@ body{padding-bottom:96px}
 </section>
 
 <section id="nav"><h2>SmartNav</h2>
-<div class="row"><button class="pri" id="tOut" onclick="navMode('out')">Outdoor</button><button id="tIn" onclick="navMode('in')">Indoor (demo campus)</button></div>
+<div class="row"><button class="pri" id="tOut" onclick="navMode('out')">Outdoor</button><button id="tIn" onclick="navMode('in')">🏫 JIIT Noida campus</button></div>
 <div id="out2"><form class="row" id="mapsSearch" action="https://www.google.com/maps/search/" method="get" target="_self" onsubmit="return search(event)"><input type="hidden" name="api" value="1"><input id="q" name="query" placeholder="Search a place, shop, restaurant…" style="flex:1" autocomplete="off"><button class="pri" type="submit">🔎 Search Google Maps</button></form><div id="navmsg" class="note">Type the exact place or business you want, then search. Sign Your Way opens Google Maps for exactly what you typed.</div>
 <div class="card"><b>🤟 Ask with a sign</b><p style="font-size:14px;margin:4px 0">Sign a letter (or a word, if you installed a word model) and Sign Your Way asks to find that place. Letters: <b>T</b> toilet, <b>H</b> hospital, <b>P</b> pharmacy, <b>F</b> food, <b>B</b> bus, <b>A</b> ATM, <b>S</b> police. Teach those letters first in Communicate. You can also speak, or tap the buttons below.</p>
 <div class="grid"><div><div class="cam"><video id="vN" playsinline muted></video><canvas id="cN"></canvas></div><div class="row"><select id="nmode" style="width:auto" onchange="buf=[]"><option value="letters">Signed letters</option><option value="words">Signed words</option></select><button class="pri" id="bN" onclick="toggleCam('N')">Start camera</button><button onclick="micOut()">🎤 Say it</button></div><span id="stN" class="chip">Camera off</span></div>
@@ -156,10 +184,9 @@ body{padding-bottom:96px}
 <p style="margin:4px 0"><b>Need something nearby?</b> Tap a category to open Google Maps for the nearest matching place.</p><div class="row" id="fac"></div><div id="map"></div>
 <div class="card" id="turn" style="text-align:center;display:none"><div id="arrow"></div><div class="big" id="tinst" style="font-size:28px"></div><div id="tsign"></div><div id="tmeta"></div></div>
 <div id="steps"></div></div>
-<div id="in2" style="display:none"><div class="note">DEMO DATA: a sample campus floor plan, not a real building. There is no live indoor tracking; choose where you are by tapping a room.</div>
-<div class="row"><label>From <select id="from"></select></label><label>To <select id="to"></select></label><button onclick="micNav()">🎤 Say destination</button></div>
-<svg id="plan" viewBox="0 0 600 340" style="width:100%;background:var(--card);border-radius:14px;border:1px solid var(--line)" role="img" aria-label="Demo campus floor plan"></svg>
-<div class="card" style="text-align:center"><div id="iarrow" style="font-size:80px"></div><div class="big" id="iinst" style="font-size:28px"></div><div id="isign"></div><div class="row" style="justify-content:center"><button onclick="istep(-1)">Back</button><button class="pri" onclick="istep(1)">Next step</button></div></div></div>
+<div id="in2" style="display:none"><div class="note">Real places around the JIIT Noida campuses, taken live from OpenStreetMap. There is no indoor floor plan, so directions open in Google Maps.</div>
+<div class="row"><button class="pri" id="cb62" onclick="campusShow('s62')">JIIT Sector 62 (main campus)</button><button id="cb128" onclick="campusShow('s128')">JIIT Sector 128</button><a id="cdir" target="_blank" rel="noopener"><button class="pri">🧭 Directions to this campus</button></a></div>
+<div id="cinfo" class="note">Loading…</div><div id="cmap"></div><div id="clist" class="card" style="margin-top:12px"></div></div>
 </section>
 </main>
 <div id="ov"><p id="ovt"></p><div class="row"><button class="pri" onclick="say(ovt.textContent)">🔊 Speak</button><button onclick="ov.classList.remove('on')">Close</button></div></div>
@@ -408,7 +435,7 @@ renderPhr();renderCts();
 /* ---- SmartNav outdoor (OpenStreetMap, with fallbacks) ---- */
 let map,me,meM,dest,line,route,si=0,wid,lay;
 const nm=t=>{$('#navmsg').textContent=t||''};
-function navMode(m){$('#out2').style.display=m==='out'?'':'none';$('#in2').style.display=m==='in'?'':'none';$('#tOut').className=m==='out'?'pri':'';$('#tIn').className=m==='in'?'pri':'';if(m==='out')setTimeout(()=>map&&map.invalidateSize(),50)}
+function navMode(m){$('#out2').style.display=m==='out'?'':'none';$('#in2').style.display=m==='in'?'':'none';$('#tOut').className=m==='out'?'pri':'';$('#tIn').className=m==='in'?'pri':'';if(m==='in')campusShow(ccur);if(m==='out')setTimeout(()=>map&&map.invalidateSize(),50)}
 function initMap(){if(map)return;map=L.map('map').setView([28.47,77.5],13);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors',maxZoom:19}).addTo(map);lay=L.layerGroup().addTo(map);findMe()}
 function findMe(){
   const cached=cachedLocation();
@@ -498,22 +525,24 @@ function navLetter(r){const L=$('#liveN');if(!r){L.textContent='No hand';nc=null
 if(r.label===nc)nn++;else{nc=r.label;nn=1}if(nn===15&&r.conf>=.5&&LK[r.label]){propose(LK[r.label],'You signed '+r.label+'.');nn=-30}}
 function micOut(){listen(t=>propose(navKey(t),'You said "'+t+'".'),null)}
 
-/* ---- Indoor demo campus (DEMO DATA) ---- */
-const RM=[['Reception',25,20,110,120],['Class 101',145,20,110,120],['Class 102',265,20,110,120],['Medical Room',385,20,110,120],['Exit A',505,20,70,120],['Washroom',25,210,110,110],['Lift',145,210,110,110],['Cafeteria',265,210,190,110],['Exit B',475,210,100,110]].map(([n,x,y,w,h])=>({n,x,y,w,h,cx:x+w/2,cy:y+h/2}));
-$('#from').innerHTML=$('#to').innerHTML=RM.map((r,i)=>`<option value="${i}">${r.n}</option>`).join('');$('#to').value=3;
-function plan(){$('#plan').innerHTML=`<rect x="20" y="150" width="560" height="40" fill="#f3f3f3" stroke="#aaa"/>`+RM.map((r,i)=>`<g onclick="$('#from').value=${i};iroute()"><rect class="room${+$('#to').value===i?' sel':''}" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" rx="6"/><text x="${r.cx}" y="${r.cy}" text-anchor="middle">${r.n}</text></g>`).join('')+(ipath.length?`<polyline points="${ipath.map(p=>p.join(',')).join(' ')}" fill="none" stroke="#c8401f" stroke-width="4" stroke-dasharray="8 4"/>`:'')}
-let ipath=[],isteps=[],ii=0;
-$('#from').onchange=$('#to').onchange=()=>iroute();
-function iroute(){const a=RM[+$('#from').value],b=RM[+$('#to').value];if(a===b){ipath=[];isteps=[{t:'You are already there',a:'🏁'}];ii=0;plan();ishow();return}
-const raw=[[a.cx,a.cy],[a.cx,170],[b.cx,170],[b.cx,b.cy]];ipath=raw.filter((p,i)=>!i||p[0]!==raw[i-1][0]||p[1]!==raw[i-1][1]);
-isteps=[];for(let i=1;i<ipath.length;i++){const v=[ipath[i][0]-ipath[i-1][0],ipath[i][1]-ipath[i-1][1]],m=Math.round(Math.hypot(...v)*.1);
-let turn='STRAIGHT',ar='⬆️';if(i>1){const u=[ipath[i-1][0]-ipath[i-2][0],ipath[i-1][1]-ipath[i-2][1]],c=u[0]*v[1]-u[1]*v[0];if(c>0){turn='RIGHT';ar='➡️'}else if(c<0){turn='LEFT';ar='⬅️'}}
-isteps.push({t:(i===1?'Leave '+a.n+' and go to the corridor, ':'Turn '+turn+', ')+'walk '+m+' m',a:ar,w:turn})}
-isteps.push({t:'ARRIVE: '+b.n,a:'🏁',w:'ARRIVE'});ii=0;plan();ishow()}
-const ishow=()=>{const s=isteps[ii]||{t:'Choose a destination',a:''};$('#iarrow').textContent=s.a;$('#iinst').textContent=s.t;$('#isign').innerHTML=s.w?spellImgs(s.w):'';if(navigator.vibrate&&ii>0)navigator.vibrate(120)};
-const istep=d=>{ii=Math.max(0,Math.min(isteps.length-1,ii+d));ishow()};
-function micNav(){listen(t=>{const s=t.toLowerCase(),i=RM.findIndex(r=>s.includes(r.n.toLowerCase())||(r.n==='Washroom'&&/toilet|restroom|bathroom/.test(s))||(r.n==='Lift'&&s.includes('elevator'))||(r.n==='Medical Room'&&/medical|doctor|clinic/.test(s)));if(i<0)alert('Heard "'+t+'" but found no matching place in the demo campus.');else{$('#to').value=i;iroute()}})}
-iroute();
+/* ---- JIIT Noida campus (real OpenStreetMap data) ---- */
+const JIIT={s62:{n:'JIIT Sector 62 (main campus)',q:'Jaypee Institute of Information Technology A-10 Sector 62 Noida',c:[28.6285,77.3725]},s128:{n:'JIIT Sector 128',q:'Jaypee Institute of Information Technology Sector 128 Noida',c:[28.5100,77.3560]}};
+let cmap,clay,ccur='s62',CP=[];
+const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function cget(urls,opt){let er;for(const u of urls){const c=new AbortController(),t=setTimeout(()=>c.abort(),15000);try{const r=await fetch(u,{...opt,signal:c.signal});if(!r.ok)throw new Error('HTTP '+r.status);return await r.json()}catch(e){er=e}finally{clearTimeout(t)}}throw er}
+async function campusShow(k){ccur=k;const J=JIIT[k];$('#cb62').className=k==='s62'?'pri':'';$('#cb128').className=k==='s128'?'pri':'';$('#cinfo').textContent='Loading '+J.n+' from OpenStreetMap…';
+$('#cdir').href='https://www.google.com/maps/dir/?api=1&travelmode=walking&destination='+encodeURIComponent(J.q);
+if(!window.L){$('#cinfo').textContent='The map library could not load. Check your connection and reload.';return}
+if(!cmap){cmap=L.map('cmap');L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors',maxZoom:19}).addTo(cmap);clay=L.layerGroup().addTo(cmap)}
+let c=J.c,exact=false;try{const r=await cget(['https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+encodeURIComponent(J.q)]);if(r[0]){c=[+r[0].lat,+r[0].lon];exact=true}}catch(e){}
+cmap.setView(c,17);setTimeout(()=>cmap.invalidateSize(),60);clay.clearLayers();L.marker(c).addTo(clay).bindPopup(esc(J.n)).openPopup();CP=[];
+const R=450,q=['building','amenity','leisure'].map(t=>`nwr(around:${R},${c[0]},${c[1]})[name][${t}];`).join('');
+try{const j=await cget(['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter'],{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'data='+encodeURIComponent('[out:json][timeout:25];('+q+');out center 120;')});
+const seen={};CP=j.elements.filter(e=>(e.lat||e.center)&&e.tags&&e.tags.name).map(e=>({n:e.tags.name,la:e.lat||e.center.lat,lo:e.lon||e.center.lon})).filter(x=>!seen[x.n]&&(seen[x.n]=1)).map(x=>({...x,d:Math.round(L.latLng(c).distanceTo([x.la,x.lo]))})).sort((a,b)=>a.d-b.d).slice(0,25)}catch(e){CP=null}
+$('#cinfo').textContent=exact?'Centered on '+J.n+' using OpenStreetMap search.':'Approximate position for '+J.n+' (OpenStreetMap search was not reachable). Use the directions button for the exact location.';
+if(CP===null){$('#clist').innerHTML='<b>Places on campus</b><div class="note">Could not load the places list right now. Check your connection and try again.</div>';return}
+CP.forEach(x=>L.marker([x.la,x.lo]).addTo(clay).bindPopup(esc(x.n)));
+$('#clist').innerHTML='<b>Named places on this campus (OpenStreetMap)</b>'+(CP.length?CP.map((x,i)=>`<div class="row"><b style="flex:1">${esc(x.n)} <small>· ${x.d} m from the centre</small></b><button onclick="cmap.setView([${x.la},${x.lo}],19)">Show</button><a target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&travelmode=walking&destination=${x.la},${x.lo}"><button class="pri">Directions</button></a></div>`).join(''):'<div class="note">OpenStreetMap has no named buildings tagged inside this campus yet. Use the directions button to reach the campus.</div>')}
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js'));
 </script>
 </body></html>
