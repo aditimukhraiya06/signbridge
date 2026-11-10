@@ -167,7 +167,7 @@ main{position:relative;z-index:1!important}
 <div class="note" id="noteM"></div></div></div></div>
 <div class="card"><b>Text to fingerspelling</b><input id="fs" placeholder="Type a word" oninput="fspell()"><div id="fsOut" class="row"></div>
 <div class="note">Fingerspelling cards only. Full ASL/ISL sentence translation is not implemented; this does not substitute signs word by word.</div></div>
-<div class="card"><b>Conversation</b><div class="log" id="log"></div><div class="row"><button onclick="exportLog()">Export transcript</button><button onclick="S.hist=[];save();renderLog()">Clear</button></div></div>
+
 </section>
 
 <section id="learn"><h2>Learn</h2>
@@ -602,15 +602,26 @@ function unlockedRewards(days){
   const all=[{d:1,n:'First Spark',i:'✨',desc:'Completed your first daily goal.'},{d:3,n:'Neon Learner',i:'💜',desc:'3-day sign practice streak.'},{d:7,n:'Sign Champion',i:'🏆',desc:'7 days of consistent practice.'},{d:14,n:'Fluent Focus',i:'🚀',desc:'14-day practice streak.'},{d:30,n:'Sign Master',i:'👑',desc:'30-day practice streak.'}];
   return all.filter(x=>days>=x.d);
 }
+const DAILY_PLANS=[
+  {title:'Letters A–E',focus:'Build your first alphabet set',items:['Practise A, B, C, D and E with the camera.','Repeat each sign until it is recognised consistently.','Finish by fingerspelling one short word using A–E.']},
+  {title:'Letters F–J',focus:'Expand your alphabet',items:['Practise F, G, H, I and J.','Pay extra attention to J because it uses movement.','Fingerspell one short word using today’s letters.']},
+  {title:'Letters K–O',focus:'Strengthen recognition',items:['Practise K, L, M, N and O.','Check your hand position and palm orientation when the app gives feedback.','Review any sign that was repeatedly missed.']},
+  {title:'Letters P–T',focus:'Build accuracy',items:['Practise P, Q, R, S and T.','Repeat difficult signs until you can get a stable recognition result.','Fingerspell one short word from memory.']},
+  {title:'Letters U–Z',focus:'Complete the alphabet',items:['Practise U, V, W, X, Y and Z.','Remember that Z uses movement rather than a single still shape.','Review two letters from earlier days that need more practice.']},
+  {title:'Common words',focus:'Move beyond individual letters',items:['Practise 5 common words available in SignLearn.','For movement-based signs, complete the full movement instead of holding one pose.','Try using at least one practiced word in a short sentence.']},
+  {title:'Review & challenge',focus:'Test what you learned this week',items:['Review your 5 weakest or least-practised signs.','Complete 5 verified sign practices without repeating the same sign.','Try one short sentence using the signs you know.']}
+];
+function dailyPlan(){return DAILY_PLANS[(new Date().getDay()+6)%7]}
 function renderStreak(){
-  const st=streakState(), done=st.today.signs.length, goal=5, rewards=unlockedRewards(st.current);
+  const st=streakState(), done=st.today.signs.length, goal=5, rewards=unlockedRewards(st.current), plan=dailyPlan();
   const pct=Math.min(100,Math.round(done/goal*100));
-  $('#streakSummary').textContent=st.current?`${st.current} day streak • best ${st.best||st.current} • ${st.xp||0} XP`:'Complete 5 different verified signs today to start your streak.';
+  $('#streakSummary').textContent=st.current?`${st.current} day streak • best ${st.best||st.current} • ${st.xp||0} XP`:'Complete today’s 5 verified practices to start your streak.';
   $('#streakBadge').textContent=st.current+' day'+(st.current===1?'':'s');
-  $('#dailyGoal').innerHTML=`<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span>Today's goal</span><b>${done}/${goal} signs</b></div><div style="height:10px;border-radius:99px;background:var(--line);overflow:hidden"><div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--neon1),var(--neon2),var(--neon3));transition:width .25s"></div></div><div style="font-size:12px;color:var(--mut);margin-top:6px">Only verified practice counts. Repeating the same held sign does not inflate the daily goal.</div>`;
+  $('#dailyGoal').innerHTML=`<div style="border:1px solid var(--line);border-radius:14px;padding:12px;background:linear-gradient(135deg,#6c3df508,#ff4d6d08)"><div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start"><div><b>🎯 Today's plan: ${plan.title}</b><div style="font-size:12px;color:var(--mut);margin-top:2px">${plan.focus}</div></div><span class="chip">5 practices</span></div><ul style="margin:10px 0 10px 20px;padding:0;font-size:13px;color:var(--mut)">${plan.items.map(x=>`<li style="margin:5px 0">${x}</li>`).join('')}</ul><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span>Daily streak target</span><b>${done}/${goal} verified signs</b></div><div style="height:10px;border-radius:99px;background:var(--line);overflow:hidden"><div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--neon1),var(--neon2),var(--neon3));transition:width .25s"></div></div><div style="font-size:12px;color:var(--mut);margin-top:7px">Only verified practice counts. Repeating the same sign does not inflate the goal.</div></div>`;
   const reward=rewards.length?rewards[rewards.length-1]:null;
+  const next=unlockedRewards(st.current+1).find(x=>x.d>st.current);
   const rewardButton=st.current>=3?` <button class="chipbtn" style="margin-left:6px" onclick="toggleRewardTheme()">${document.documentElement.dataset.reward==='on'?'Use normal interface':'Use reward interface'}</button>`:'';
-  $('#rewardArea').innerHTML=reward?`<div class="note" style="margin:0"><b>${reward.i} ${reward.n} unlocked</b><br>${reward.desc}${rewardButton}</div>`:`<div class="note" style="margin:0"><b>Next reward:</b> ✨ First Spark — complete today's 5-sign goal.</div>`;
+  $('#rewardArea').innerHTML=reward?`<div class="note" style="margin:0"><b>${reward.i} ${reward.n} unlocked</b><br>${reward.desc}${next?`<br><span style="font-size:12px">Next reward at ${next.d} days: ${next.i} ${next.n}</span>`:''}${rewardButton}</div>`:`<div class="note" style="margin:0"><b>Next reward:</b> ✨ First Spark — complete today’s 5 verified practices.</div>`;
 }
 function toggleRewardTheme(){document.documentElement.dataset.reward=document.documentElement.dataset.reward==='on'?'off':'on';localStorage.rewardTheme=document.documentElement.dataset.reward;}
 function renderHomeStats(){
