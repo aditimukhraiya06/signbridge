@@ -1,6 +1,6 @@
 // SignYourWay location/search/ISL fix v7
-const C='signbridge-v13-lavender-jiit';
-self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(C).then(c=>c.addAll(['/','/index.html','/manifest.json','/icon.svg'])))});
+const C='signbridge-v14-excel-campus';
+self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(C).then(c=>c.addAll(['/','/index.html','/manifest.json','/icon.svg','/campus-data.json'])))});
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))).then(()=>clients.claim())));
 // Network first (so updates and new models appear), cache as offline fallback. Map tiles/APIs are not cached.
 self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;const u=new URL(e.request.url);

@@ -5,12 +5,15 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Sign Your Way</title>
 <link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <meta name="theme-color" content="#b56bd9">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 :root{--bg:#fff4fb;--bg2:#e9f4ff;--card:#fff;--ink:#241a3a;--mut:#6b5f86;--line:#eadcf7;--blue:#6c3df5;--bl:linear-gradient(135deg,#6c3df5,#3da5ff);--gl:linear-gradient(135deg,#12c28a,#a3e635);--rl:linear-gradient(135deg,#ff4d6d,#ff9a3d);--pl:linear-gradient(135deg,#d946ef,#6c3df5)}
 [data-theme=dark]{--bg:#150f2b;--bg2:#0f1a3a;--card:#241b45;--ink:#f6efff;--mut:#b9a9de;--line:#3b2f6b;--blue:#a78bfa;--bl:linear-gradient(135deg,#5b36d9,#2563eb);--gl:linear-gradient(135deg,#0d9f72,#65a30d);--rl:linear-gradient(135deg,#e11d48,#ea580c);--pl:linear-gradient(135deg,#a21caf,#5b36d9)}
-*{box-sizing:border-box}body{margin:0;font:16px/1.5 "Segoe UI",system-ui,-apple-system,sans-serif;background:linear-gradient(160deg,var(--bg),var(--bg2)) fixed;color:var(--ink);padding-bottom:76px}
+*{box-sizing:border-box}body{margin:0;font:16px/1.5 "Plus Jakarta Sans",system-ui,-apple-system,sans-serif;background:linear-gradient(160deg,var(--bg),var(--bg2)) fixed;color:var(--ink);padding-bottom:76px}
 header{display:flex;align-items:center;gap:10px;padding:12px 16px;position:sticky;top:0;z-index:5;background:var(--card);box-shadow:0 4px 20px #6c3df522}
 header b{font-size:19px;background:linear-gradient(90deg,#6c3df5,#ff4d6d);-webkit-background-clip:text;background-clip:text;color:transparent}
 .logo{width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,#6c3df5,#ff4d6d);color:#fff;display:grid;place-items:center;font-size:19px;animation:wave 2.5s infinite}
@@ -120,7 +123,7 @@ nav button.on{color:var(--accent-dark);background:#b56bd91f;text-shadow:none}nav
 div.sg,img.sg{border:2px solid var(--line);background:#fff;box-shadow:none}
 select:focus,input:focus{border-color:var(--accent);box-shadow:0 0 0 3px #b56bd933}
 .note{border-left-color:var(--accent)}
-</style>
+.campusSearch{position:relative}.campusSearch input{padding-right:42px}.campusResults{display:grid;gap:10px;margin-top:12px}.campusResult{padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--card);cursor:pointer}.campusResult:hover{border-color:var(--blue);box-shadow:0 8px 24px #7c3aed22}.campusMeta{display:flex;gap:7px;flex-wrap:wrap;margin-top:7px}.campusMeta .chip{font-size:11px}.campusEmpty{padding:14px;text-align:center;color:var(--mut)}.accessGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}.accessGrid label{display:flex;align-items:center;gap:8px;padding:10px;border:1px solid var(--line);border-radius:12px}.accessGrid input{width:auto}.statGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}.stat{padding:14px;border-radius:14px;background:linear-gradient(135deg,#7c3aed16,#22d3ee16);border:1px solid var(--line)}.stat b{display:block;font-size:24px}.stat span{font-size:12px;color:var(--mut)}</style>
 </head>
 <body>
 <header><div class="logo">✋</div><b>Sign Your Way</b><span class="chip" id="net"></span><div class="sp"></div>
@@ -135,6 +138,8 @@ select:focus,input:focus{border-color:var(--accent);box-shadow:0 0 0 3px #b56bd9
 <button class="tile" style="background:var(--rl)" onclick="go('emg')"><div style="font-size:26px">🛡️</div><h3>Emergency</h3><span>Phrases, contacts, location. Works offline.</span></button>
 <button class="tile" style="background:var(--pl)" onclick="go('nav')"><div style="font-size:26px">📍</div><h3>SmartNav</h3><span>Outdoor routes and the JIIT Noida campus map.</span></button>
 </div>
+<div class="card" style="margin-top:14px"><b>📊 My Progress</b><div id="homeStats" class="statGrid" style="margin-top:10px"></div></div>
+<div class="card"><b>♿ Accessibility</b><p style="font-size:13px;color:var(--mut);margin:4px 0 10px">Personalize SignYourWay without changing its core features.</p><div class="accessGrid"><label><input id="aContrast" type="checkbox" onchange="applyAccess()"> High contrast</label><label><input id="aMotion" type="checkbox" onchange="applyAccess()"> Reduced motion</label><label><input id="aLarge" type="checkbox" onchange="applyAccess()"> Larger text</label><label><input id="aHaptic" type="checkbox" onchange="applyAccess()"> Haptic feedback</label></div></div>
 
 </section>
 
@@ -184,9 +189,11 @@ select:focus,input:focus{border-color:var(--accent);box-shadow:0 0 0 3px #b56bd9
 <p style="margin:4px 0"><b>Need something nearby?</b> Tap a category to open Google Maps for the nearest matching place.</p><div class="row" id="fac"></div><div id="map"></div>
 <div class="card" id="turn" style="text-align:center;display:none"><div id="arrow"></div><div class="big" id="tinst" style="font-size:28px"></div><div id="tsign"></div><div id="tmeta"></div></div>
 <div id="steps"></div></div>
-<div id="in2" style="display:none"><div class="note">Real places around the JIIT Noida campuses, taken live from OpenStreetMap. There is no indoor floor plan, so directions open in Google Maps.</div>
-<div class="row"><button class="pri" id="cb62" onclick="campusShow('s62')">JIIT Sector 62 (main campus)</button><button id="cb128" onclick="campusShow('s128')">JIIT Sector 128</button><a id="cdir" target="_blank" rel="noopener"><button class="pri">🧭 Directions to this campus</button></a></div>
-<div id="cinfo" class="note">Loading…</div><div id="cmap"></div><div id="clist" class="card" style="margin-top:12px"></div></div>
+<div id="in2" style="display:none">
+<div class="note"><b>Campus data source:</b> the provided JIIT laboratory and lecture/tutorial Excel files are the source of truth for rooms and labs. Campus entries below are loaded from <code>campus-data.json</code>; external places continue through Google Maps.</div>
+<div class="card campusSearch"><b>🔎 Search campus rooms, labs &amp; facilities</b><p style="font-size:13px;color:var(--mut);margin:4px 0 10px">Try “ECE lab”, “Communication Lab”, “Room G-10”, “B Block”, “ABB-III” or a lab code.</p><div class="row"><input id="campusQ" placeholder="Search a classroom, laboratory, room or block…" autocomplete="off" oninput="campusSearch()" style="flex:1"><button onclick="campusSearch(true)">Search</button></div><div id="campusResults" class="campusResults"></div></div>
+<div class="row"><button class="pri" id="cb62" onclick="campusShow('s62')">JIIT Sector 62 (main campus)</button><button id="cb128" onclick="campusShow('s128')">JIIT Sector 128</button><a id="cdir" target="_blank" rel="noopener"><button class="pri">🧭 Directions to campus</button></a></div>
+<div id="cinfo" class="note">Campus database ready. Search above for an exact room or laboratory.</div><div id="cmap"></div><div id="clist" class="card" style="margin-top:12px"></div></div>
 </section>
 </main>
 <div id="ov"><p id="ovt"></p><div class="row"><button class="pri" onclick="say(ovt.textContent)">🔊 Speak</button><button onclick="ov.classList.remove('on')">Close</button></div></div>
@@ -543,6 +550,24 @@ $('#cinfo').textContent=exact?'Centered on '+J.n+' using OpenStreetMap search.':
 if(CP===null){$('#clist').innerHTML='<b>Places on campus</b><div class="note">Could not load the places list right now. Check your connection and try again.</div>';return}
 CP.forEach(x=>L.marker([x.la,x.lo]).addTo(clay).bindPopup(esc(x.n)));
 $('#clist').innerHTML='<b>Named places on this campus (OpenStreetMap)</b>'+(CP.length?CP.map((x,i)=>`<div class="row"><b style="flex:1">${esc(x.n)} <small>· ${x.d} m from the centre</small></b><button onclick="cmap.setView([${x.la},${x.lo}],19)">Show</button><a target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&travelmode=walking&destination=${x.la},${x.lo}"><button class="pri">Directions</button></a></div>`).join(''):'<div class="note">OpenStreetMap has no named buildings tagged inside this campus yet. Use the directions button to reach the campus.</div>')}
+/* ---- Excel-backed campus database ---- */
+let CAMPUS=[];
+async function loadCampusData(){
+  try{const r=await fetch('campus-data.json',{cache:'no-cache'});if(!r.ok)throw new Error('Campus data unavailable');const d=await r.json();CAMPUS=[...(d.labs||[]),...(d.rooms||[])];$('#cinfo').textContent=`${CAMPUS.length} campus locations loaded from the provided Excel source files.`;return true}
+  catch(e){$('#cinfo').textContent='Campus location data could not be loaded. Outdoor navigation is still available.';return false}
+}
+const normCampus=x=>String(x||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+function campusScore(item,q){const hay=normCampus([item.name,item.room,item.code,item.building,item.building_normalized,item.floor,item.type].join(' '));const toks=normCampus(q).split(' ').filter(Boolean);if(!toks.length)return 0;let score=0;for(const t of toks){if(hay===t)score+=10;else if(hay.includes(t))score+=4;else if(t.length>2&&hay.includes(t.slice(0,-1)))score+=1.5}if(normCampus(item.name).includes(normCampus(q)))score+=8;return score}
+function campusSearch(focus){const q=$('#campusQ')?.value.trim()||'';const box=$('#campusResults');if(!box)return;if(!q){box.innerHTML='<div class="campusEmpty">Search the Excel-backed campus database.</div>';return}const hits=CAMPUS.map(x=>({x,s:campusScore(x,q)})).filter(o=>o.s>0).sort((a,b)=>b.s-a.s).slice(0,12);if(!hits.length){box.innerHTML='<div class="campusEmpty">No campus match found. Try a room number, lab code, block or shorter name.</div>';return}box.innerHTML=hits.map(({x})=>`<div class="campusResult" onclick="showCampusLocation(${CAMPUS.indexOf(x)})"><b>${esc(x.name)}</b><div class="campusMeta"><span class="chip">${x.type==='laboratory'?'Laboratory':'Classroom'}</span>${x.code?`<span class="chip">${esc(x.code)}</span>`:''}${x.building?`<span class="chip">${esc(x.building_normalized||x.building)}</span>`:''}${x.floor?`<span class="chip">${esc(x.floor)}</span>`:''}</div></div>`).join('');if(focus)box.scrollIntoView({behavior:'smooth',block:'nearest'})}
+function showCampusLocation(i){const x=CAMPUS[i];if(!x)return;$('#cinfo').innerHTML=`<b>${esc(x.name)}</b><br>${x.building?esc(x.building_normalized||x.building)+' · ':''}${x.floor?esc(x.floor)+' · ':''}${x.room?esc(x.room):x.code?esc(x.code):''}`;const q=[x.name,x.room&&('Room '+x.room),x.code,x.building,x.floor,'JIIT Noida'].filter(Boolean).join(', ');const url='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q);$('#clist').innerHTML=`<b>Selected campus location</b><div class="row"><span style="flex:1">${esc(x.name)}</span><a target="_blank" rel="noopener" href="${url}"><button class="pri">🧭 Open navigation</button></a></div>${x.facilities&&Object.keys(x.facilities).length?'<details><summary>Room facilities</summary><div style="font-size:13px;margin-top:8px">'+Object.entries(x.facilities).map(([k,v])=>`<div><b>${esc(k)}:</b> ${esc(v)}</div>`).join('')+'</div></details>':''}`;if(window.cmap){try{cmap.setView([28.6285,77.3725],17)}catch(e){}}}
+loadCampusData().then(()=>campusSearch());
+/* ---- accessibility preferences ---- */
+const AKEY='signbridge-access';
+function applyAccess(){const a={contrast:$('#aContrast')?.checked,motion:$('#aMotion')?.checked,large:$('#aLarge')?.checked,haptic:$('#aHaptic')?.checked};localStorage.setItem(AKEY,JSON.stringify(a));document.documentElement.classList.toggle('access-contrast',!!a.contrast);document.documentElement.classList.toggle('access-large',!!a.large);if(a.motion)document.documentElement.style.setProperty('--motion','0ms');else document.documentElement.style.removeProperty('--motion');}
+function loadAccess(){try{const a=JSON.parse(localStorage.getItem(AKEY)||'{}');['contrast','motion','large','haptic'].forEach(k=>{const el=$('#a'+k[0].toUpperCase()+k.slice(1));if(el)el.checked=!!a[k]});applyAccess()}catch(e){}}
+loadAccess();
+function renderHomeStats(){const all=Object.values(S.prog||{});const tries=all.reduce((n,p)=>n+(p.tries||0),0),ok=all.reduce((n,p)=>n+(p.ok||0),0),signs=new Set(Object.keys(S.prog||{}).filter(k=>k.endsWith(':')).map(k=>k.split(':')[1])).size;$('#homeStats').innerHTML=`<div class="stat"><b>${ok}</b><span>matched attempts</span></div><div class="stat"><b>${tries?Math.round(ok/tries*100):0}%</b><span>practice accuracy</span></div><div class="stat"><b>${signs}</b><span>signs practised</span></div><div class="stat"><b>${SAMP.filter(x=>x.lg===S.lang).length||0}</b><span>personal samples</span></div>`}
+renderHomeStats();
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js'));
 </script>
 </body></html>
