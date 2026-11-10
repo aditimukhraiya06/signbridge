@@ -123,7 +123,15 @@ nav button.on{color:var(--accent-dark);background:#b56bd91f;text-shadow:none}nav
 div.sg,img.sg{border:2px solid var(--line);background:#fff;box-shadow:none}
 select:focus,input:focus{border-color:var(--accent);box-shadow:0 0 0 3px #b56bd933}
 .note{border-left-color:var(--accent)}
-.campusSearch{position:relative}.campusSearch input{padding-right:42px}.campusResults{display:grid;gap:10px;margin-top:12px}.campusResult{padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--card);cursor:pointer}.campusResult:hover{border-color:var(--blue);box-shadow:0 8px 24px #7c3aed22}.campusMeta{display:flex;gap:7px;flex-wrap:wrap;margin-top:7px}.campusMeta .chip{font-size:11px}.campusEmpty{padding:14px;text-align:center;color:var(--mut)}.accessGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}.accessGrid label{display:flex;align-items:center;gap:8px;padding:10px;border:1px solid var(--line);border-radius:12px}.accessGrid input{width:auto}.statGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}.stat{padding:14px;border-radius:14px;background:linear-gradient(135deg,#7c3aed16,#22d3ee16);border:1px solid var(--line)}.stat b{display:block;font-size:24px}.stat span{font-size:12px;color:var(--mut)}\n/* ===== ACCESSIBILITY + HEADER FIX ===== */\n:root{--motion:0.15s;--header-h:86px}\nheader{min-height:var(--header-h);height:var(--header-h);position:sticky!important;top:0!important;z-index:50!important;isolation:isolate;background:var(--glass)!important}\nmain{position:relative;z-index:1!important}\n.access-large{font-size:18px!important}\n.access-large body{font-size:18px!important}\n.access-large h1{font-size:clamp(34px,6vw,58px)!important}\n.access-large h2{font-size:clamp(27px,5vw,38px)!important}\n.access-large h3{font-size:21px!important}\n.access-large button,.access-large input,.access-large select,.access-large textarea{font-size:1.05em!important}\n.access-large .tile span,.access-large .note,.access-large .chip{font-size:15px!important}\n.access-contrast body{background:#fff!important;color:#000!important}\n.access-contrast .card,.access-contrast header,.access-contrast nav,.access-contrast input,.access-contrast select,.access-contrast textarea,.access-contrast button{background:#fff!important;color:#000!important;border-color:#000!important}\n.access-contrast .tile{background:#000!important;color:#fff!important}\n.access-contrast .tile span{color:#fff!important}\n.access-contrast .note{background:#fff!important;color:#000!important;border-left-color:#000!important}\n.access-contrast h1,.access-contrast h2,.access-contrast h3,.access-contrast header b{color:#000!important;-webkit-text-fill-color:#000!important;background:none!important}\n.access-reduced-motion *,.access-reduced-motion *::before,.access-reduced-motion *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}\n@media(max-width:700px){header{padding:10px 12px;--header-h:76px}header b{font-size:18px}.accessGrid{grid-template-columns:1fr 1fr}}\n</style>
+.campusSearch{position:relative}.campusSearch input{padding-right:42px}.campusResults{display:grid;gap:10px;margin-top:12px}.campusResult{padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--card);cursor:pointer}.campusResult:hover{border-color:var(--blue);box-shadow:0 8px 24px #7c3aed22}.campusMeta{display:flex;gap:7px;flex-wrap:wrap;margin-top:7px}.campusMeta .chip{font-size:11px}.campusEmpty{padding:14px;text-align:center;color:var(--mut)}.accessGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}.accessGrid label{display:flex;align-items:center;gap:8px;padding:10px;border:1px solid var(--line);border-radius:12px}.accessGrid input{width:auto}.statGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}.stat{padding:14px;border-radius:14px;background:linear-gradient(135deg,#7c3aed16,#22d3ee16);border:1px solid var(--line)}.stat b{display:block;font-size:24px}.stat span{font-size:12px;color:var(--mut)}\n/* ===== STREAK REWARD INTERFACE ===== */
+[data-reward="on"] body{background:radial-gradient(900px 500px at 10% 0,#ffe7a8 0,transparent 55%),radial-gradient(900px 600px at 100% 0,#ffc8ef 0,transparent 55%),var(--bg) fixed}
+[data-reward="on"] .hero1{background:linear-gradient(90deg,#f59e0b,#ec4899,#8b5cf6);background-size:300%;-webkit-background-clip:text;background-clip:text}
+[data-reward="on"] #streakCard{box-shadow:0 12px 40px #f59e0b33}
+/* ===== STABLE HEADER ===== */
+:root{--header-h:86px}
+header{min-height:var(--header-h);height:var(--header-h);position:sticky!important;top:0!important;z-index:50!important;isolation:isolate;background:var(--card)!important;box-shadow:0 5px 18px #6c3df522}
+main{position:relative;z-index:1!important}
+@media(max-width:700px){header{padding:10px 12px;--header-h:76px}header b{font-size:18px}}\n</style>
 </head>
 <body>
 <header><div class="logo">✋</div><b>Sign Your Way</b><span class="chip" id="net"></span><div class="sp"></div>
@@ -139,7 +147,8 @@ select:focus,input:focus{border-color:var(--accent);box-shadow:0 0 0 3px #b56bd9
 <button class="tile" style="background:var(--pl)" onclick="go('nav')"><div style="font-size:26px">📍</div><h3>SmartNav</h3><span>Outdoor routes and the JIIT Sector 62 campus map.</span></button>
 </div>
 <div class="card" style="margin-top:14px"><b>📊 My Progress</b><div id="homeStats" class="statGrid" style="margin-top:10px"></div></div>
-<div class="card"><b>♿ Accessibility</b><p style="font-size:13px;color:var(--mut);margin:4px 0 10px">Personalize SignYourWay without changing its core features.</p><div class="accessGrid"><label><input id="aContrast" type="checkbox" onchange="applyAccess()"> High contrast</label><label><input id="aMotion" type="checkbox" onchange="applyAccess()"> Reduced motion</label><label><input id="aLarge" type="checkbox" onchange="applyAccess()"> Larger text</label><label><input id="aHaptic" type="checkbox" onchange="applyAccess()"> Haptic feedback</label></div></div>
+<div class="card" id="streakCard"><div class="row" style="justify-content:space-between;margin-top:0"><div><b>🔥 Sign Streak</b><div id="streakSummary" style="color:var(--mut);font-size:13px;margin-top:3px"></div></div><span class="chip" id="streakBadge">0 days</span></div><div id="dailyGoal" style="margin-top:10px"></div><div id="rewardArea" style="margin-top:12px"></div></div>
+
 
 </section>
 
@@ -373,7 +382,7 @@ if(S.lang==='ASL'&&TP[T]&&!TP[T].nd&&r.cv&&!SAMP.some(s=>s.lg==='ASL'&&s.l===T))
 msg=ok?'Correct! That is '+T+'.':bad.length?'Adjust: '+bad.join('; ')+'.':'Very close. Hold steady with your whole hand in view.'}
 else msg=ok?'Correct! That is '+T+'.':'The app sees '+(r.label||'no clear letter')+'. Match the picture for '+T+' and hold steady.';
 fb.textContent=(ok?'✅ ':'🔁 ')+msg;const key=r.label+'|'+ok;if(key===lc)ln++;else{lc=key;ln=1}
-if(ln===20){const k=S.lang+':'+T,p=S.prog[k]||(S.prog[k]={ok:0,tries:0});p.tries++;if(ok){p.ok++;burst()}save();renderProg();ln=-20}}
+if(ln===20){const k=S.lang+':'+T,p=S.prog[k]||(S.prog[k]={ok:0,tries:0});p.tries++;if(ok){p.ok++;burst();recordVerifiedPractice(S.lang,T,true)}else{recordVerifiedPractice(S.lang,T,false)}save();renderProg();ln=-20}}
 setTarget();renderChart();loadBI();twList();
 
 /* ---- emergency ---- */
@@ -565,14 +574,53 @@ function campusScore(item,q){const hay=normCampus([item.name,item.room,item.code
 function campusSearch(focus){const q=$('#campusQ')?.value.trim()||'';const box=$('#campusResults');if(!box)return;if(!q){box.innerHTML='<div class="campusEmpty">Search the Excel-backed campus database.</div>';return}const hits=CAMPUS.map(x=>({x,s:campusScore(x,q)})).filter(o=>o.s>0).sort((a,b)=>b.s-a.s).slice(0,12);if(!hits.length){box.innerHTML='<div class="campusEmpty">No campus match found. Try a room number, lab code, block or shorter name.</div>';return}box.innerHTML=hits.map(({x})=>`<div class="campusResult" onclick="showCampusLocation(${CAMPUS.indexOf(x)})"><b>${esc(x.name)}</b><div class="campusMeta"><span class="chip">${x.type==='laboratory'?'Laboratory':'Classroom'}</span>${x.code?`<span class="chip">${esc(x.code)}</span>`:''}${x.building?`<span class="chip">${esc(x.building_normalized||x.building)}</span>`:''}${x.floor?`<span class="chip">${esc(x.floor)}</span>`:''}</div></div>`).join('');if(focus)box.scrollIntoView({behavior:'smooth',block:'nearest'})}
 function showCampusLocation(i){const x=CAMPUS[i];if(!x)return;$('#cinfo').innerHTML=`<b>${esc(x.name)}</b><br>${x.building?esc(x.building_normalized||x.building)+' · ':''}${x.floor?esc(x.floor)+' · ':''}${x.room?esc(x.room):x.code?esc(x.code):''}`;const q=[x.name,x.room&&('Room '+x.room),x.code,x.building,x.floor,'JIIT Noida'].filter(Boolean).join(', ');const url='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q);$('#clist').innerHTML=`<b>Selected campus location</b><div class="row"><span style="flex:1">${esc(x.name)}</span><a target="_blank" rel="noopener" href="${url}"><button class="pri">🧭 Open navigation</button></a></div>${x.facilities&&Object.keys(x.facilities).length?'<details><summary>Room facilities</summary><div style="font-size:13px;margin-top:8px">'+Object.entries(x.facilities).map(([k,v])=>`<div><b>${esc(k)}:</b> ${esc(v)}</div>`).join('')+'</div></details>':''}`;if(window.cmap){try{cmap.setView([28.6285,77.3725],17)}catch(e){}}}
 loadCampusData().then(()=>campusSearch());
-/* ---- accessibility preferences ---- */
-const AKEY='signbridge-access';
-function applyAccess(){const a={contrast:!!$('#aContrast')?.checked,motion:!!$('#aMotion')?.checked,large:!!$('#aLarge')?.checked,haptic:!!$('#aHaptic')?.checked};localStorage.setItem(AKEY,JSON.stringify(a));const root=document.documentElement;root.classList.toggle('access-contrast',a.contrast);root.classList.toggle('access-large',a.large);root.classList.toggle('access-reduced-motion',a.motion);root.style.setProperty('--motion',a.motion?'0ms':'0.15s');root.dataset.haptic=a.haptic?'on':'off';}
-function loadAccess(){try{const a=JSON.parse(localStorage.getItem(AKEY)||'{}');['contrast','motion','large','haptic'].forEach(k=>{const el=$('#a'+k[0].toUpperCase()+k.slice(1));if(el)el.checked=!!a[k]});applyAccess()}catch(e){applyAccess()}}
-loadAccess();
-document.addEventListener('click',e=>{if(document.documentElement.dataset.haptic!=='on'||!navigator.vibrate)return;if(e.target.closest('button,.pri,.dan'))navigator.vibrate(12)});
-function renderHomeStats(){const all=Object.values(S.prog||{});const tries=all.reduce((n,p)=>n+(p.tries||0),0),ok=all.reduce((n,p)=>n+(p.ok||0),0),signs=new Set(Object.keys(S.prog||{}).filter(k=>k.endsWith(':')).map(k=>k.split(':')[1])).size;$('#homeStats').innerHTML=`<div class="stat"><b>${ok}</b><span>matched attempts</span></div><div class="stat"><b>${tries?Math.round(ok/tries*100):0}%</b><span>practice accuracy</span></div><div class="stat"><b>${signs}</b><span>signs practised</span></div><div class="stat"><b>${SAMP.filter(x=>x.lg===S.lang).length||0}</b><span>personal samples</span></div>`}
-renderHomeStats();
+/* ---- practice tracking + streak rewards ---- */
+const todayKey=()=>new Date().toLocaleDateString('en-CA');
+function streakState(){
+  S.streak=S.streak||{current:0,best:0,lastCompleted:null,completedDays:[],today:{date:todayKey(),signs:[]},xp:0};
+  const d=todayKey();
+  if(!S.streak.today||S.streak.today.date!==d) S.streak.today={date:d,signs:[]};
+  S.streak.completedDays=Array.isArray(S.streak.completedDays)?S.streak.completedDays:[];
+  return S.streak;
+}
+function dayDiff(a,b){return Math.round((new Date(b+'T00:00:00')-new Date(a+'T00:00:00'))/86400000)}
+function recordVerifiedPractice(lang,sign,correct){
+  const st=streakState();
+  if(correct){
+    const key=lang+':'+sign;
+    if(!st.today.signs.includes(key)) st.today.signs.push(key);
+    st.xp=(st.xp||0)+10;
+    if(st.today.signs.length>=5 && !st.completedDays.includes(st.today.date)){
+      st.completedDays.push(st.today.date); st.completedDays=st.completedDays.slice(-90);
+      if(st.lastCompleted){const gap=dayDiff(st.lastCompleted,st.today.date);st.current=gap===1?st.current+1:1}else st.current=1;
+      st.best=Math.max(st.best||0,st.current);st.lastCompleted=st.today.date;st.xp+=50;burst();
+    }
+  }
+  save();renderHomeStats();renderStreak();
+}
+function unlockedRewards(days){
+  const all=[{d:1,n:'First Spark',i:'✨',desc:'Completed your first daily goal.'},{d:3,n:'Neon Learner',i:'💜',desc:'3-day sign practice streak.'},{d:7,n:'Sign Champion',i:'🏆',desc:'7 days of consistent practice.'},{d:14,n:'Fluent Focus',i:'🚀',desc:'14-day practice streak.'},{d:30,n:'Sign Master',i:'👑',desc:'30-day practice streak.'}];
+  return all.filter(x=>days>=x.d);
+}
+function renderStreak(){
+  const st=streakState(), done=st.today.signs.length, goal=5, rewards=unlockedRewards(st.current);
+  const pct=Math.min(100,Math.round(done/goal*100));
+  $('#streakSummary').textContent=st.current?`${st.current} day streak • best ${st.best||st.current} • ${st.xp||0} XP`:'Complete 5 different verified signs today to start your streak.';
+  $('#streakBadge').textContent=st.current+' day'+(st.current===1?'':'s');
+  $('#dailyGoal').innerHTML=`<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span>Today's goal</span><b>${done}/${goal} signs</b></div><div style="height:10px;border-radius:99px;background:var(--line);overflow:hidden"><div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--neon1),var(--neon2),var(--neon3));transition:width .25s"></div></div><div style="font-size:12px;color:var(--mut);margin-top:6px">Only verified practice counts. Repeating the same held sign does not inflate the daily goal.</div>`;
+  const reward=rewards.length?rewards[rewards.length-1]:null;
+  const rewardButton=st.current>=3?` <button class="chipbtn" style="margin-left:6px" onclick="toggleRewardTheme()">${document.documentElement.dataset.reward==='on'?'Use normal interface':'Use reward interface'}</button>`:'';
+  $('#rewardArea').innerHTML=reward?`<div class="note" style="margin:0"><b>${reward.i} ${reward.n} unlocked</b><br>${reward.desc}${rewardButton}</div>`:`<div class="note" style="margin:0"><b>Next reward:</b> ✨ First Spark — complete today's 5-sign goal.</div>`;
+}
+function toggleRewardTheme(){document.documentElement.dataset.reward=document.documentElement.dataset.reward==='on'?'off':'on';localStorage.rewardTheme=document.documentElement.dataset.reward;}
+function renderHomeStats(){
+  const all=Object.values(S.prog||{}),tries=all.reduce((n,p)=>n+(p.tries||0),0),ok=all.reduce((n,p)=>n+(p.ok||0),0);
+  const signs=new Set(Object.keys(S.prog||{}).map(k=>k.split(':')[1]).filter(Boolean)).size;
+  const trained=SAMP.filter(x=>x.lg===S.lang).length;
+  $('#homeStats').innerHTML=`<div class="stat"><b>${ok}</b><span>verified matches</span></div><div class="stat"><b>${tries?Math.round(ok/tries*100):0}%</b><span>verified accuracy</span></div><div class="stat"><b>${signs}</b><span>signs practised</span></div><div class="stat"><b>${trained}</b><span>personal samples</span></div>`;
+}
+function loadRewardTheme(){document.documentElement.dataset.reward=localStorage.rewardTheme||'off'}
+loadRewardTheme();renderHomeStats();renderStreak();
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js'));
 </script>
 </body></html>
