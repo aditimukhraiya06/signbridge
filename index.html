@@ -299,30 +299,30 @@ if(bp){const nw=performance.now();if(nw-PST>500)PSB=[];PST=nw;PSB.push(bp);if(PS
 t={...tpl(bh.w),label:o[0][0]>=.45?C[o[0][1]]:null,conf:o[0][0],top:o.slice(0,3).map(x=>C[x[1]]+' '+Math.round(x[0]*100)+'%').join(' · ')}}}
 if(k&&k.label&&(S.lang==='ISL'||k.conf>.8||!t||!t.label))return{...(t||{}),...k};
 return t||{label:null,conf:0,top:k?k.top:''}}
-let HL=null,stream=null,cur=null,raf=0,lastT=-1;
+let HL=null,stream=null,activeCamera=null,raf=0,lastT=-1;
 let forceCPU=false,lastChip='';
 async function initHL(){if(HL)return HL;const V='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';const m=await import(V+'/+esm');const f=await m.FilesetResolver.forVisionTasks(V+'/wasm');
 const mk=d=>m.HandLandmarker.createFromOptions(f,{baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',delegate:d},runningMode:'VIDEO',numHands:2,minHandDetectionConfidence:.3,minHandPresenceConfidence:.3,minTrackingConfidence:.3});
 try{HL=await mk(forceCPU?'CPU':'GPU')}catch(e){HL=await mk('CPU')}return HL}
-async function toggleCam(v){if(cur===v){stopCam();return}stopCam();const st=$('#st'+v);st.textContent='Loading hand model…';
+async function toggleCam(v){if(activeCamera===v){stopCam();return}stopCam();const st=$('#st'+v);st.textContent='Loading hand model…';
 if(!window.isSecureContext||!navigator.mediaDevices){st.textContent='Camera needs https:// or localhost (not file://).';return}
 try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:640,height:480}})}
 catch(e){st.textContent=e.name==='NotAllowedError'?'Camera permission denied. Allow camera access in the address bar and retry.':e.name==='NotFoundError'?'No camera found.':e.name==='NotReadableError'?'Camera is in use by another app/tab. Close it and retry.':'Camera error: '+e.message;return}
-const vid=$('#v'+v);vid.srcObject=stream;try{await vid.play()}catch(e){}cur=v;$('#b'+v).textContent='Stop camera';st.textContent='Camera on. Loading hand model…';
+const vid=$('#v'+v);vid.srcObject=stream;try{await vid.play()}catch(e){}activeCamera=v;$('#b'+v).textContent='Stop camera';st.textContent='Camera on. Loading hand model…';
 try{await initHL()}catch(e){st.textContent='Camera is on, but the hand model failed to load (check internet / ad-blocker): '+e.message;return}
-if(cur!==v)return;st.textContent='Tracking';loop()}
-function stopCam(){cancelAnimationFrame(raf);if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;if(cur){$('#b'+cur).textContent='Start camera';$('#st'+cur).textContent='Camera off'}cur=null;cand=null;n=0;teach=null;buf=[];lastChip='';RB=[]}
+if(activeCamera!==v)return;st.textContent='Tracking';loop()}
+function stopCam(){cancelAnimationFrame(raf);if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;if(activeCamera){$('#b'+activeCamera).textContent='Start camera';$('#st'+activeCamera).textContent='Camera off'}activeCamera=null;cand=null;n=0;teach=null;buf=[];lastChip='';RB=[]}
 let cand=null,n=0;
-function loop(){if(!cur)return;try{const vid=$('#v'+cur),cv=$('#c'+cur);
+function loop(){if(!activeCamera)return;try{const vid=$('#v'+activeCamera),cv=$('#c'+activeCamera);
 if(HL&&vid.currentTime!==lastT&&vid.videoWidth){lastT=vid.currentTime;cv.width=vid.videoWidth;cv.height=vid.videoHeight;const cx=cv.getContext('2d');cx.clearRect(0,0,cv.width,cv.height);
 const r=HL.detectForVideo(vid,performance.now()),ar=vid.videoWidth/vid.videoHeight;cx.fillStyle='#ff4d6d';
 r.landmarks.forEach(lm=>lm.forEach(p=>{cx.beginPath();cx.arc(p.x*cv.width,p.y*cv.height,4,0,7);cx.fill()}));
 const hs=[];r.landmarks.forEach((lm,i)=>{const w=(r.worldLandmarks||[])[i];if(w)hs.push({lm,w})});
-const chip='Tracking · '+(hs.length?hs.length+(hs.length>1?' hands':' hand')+' found':'no hand in view');if(chip!==lastChip){$('#st'+cur).textContent=chip;lastChip=chip}
-{const cb=$('#v'+cur).parentElement;cb&&cb.classList.toggle('live',hs.length>0)}rbPush(hs,ar);onHand(hs.length?classify(hs,ar):null,hs,ar,r)}
-}catch(e){console.error(e);if(cur)$('#st'+cur).textContent='Tracking error: '+(e.message||e);if(!forceCPU){forceCPU=true;HL=null;initHL().catch(()=>{})}}
+const chip='Tracking · '+(hs.length?hs.length+(hs.length>1?' hands':' hand')+' found':'no hand in view');if(chip!==lastChip){$('#st'+activeCamera).textContent=chip;lastChip=chip}
+{const cb=$('#v'+activeCamera).parentElement;cb&&cb.classList.toggle('live',hs.length>0)}rbPush(hs,ar);onHand(hs.length?classify(hs,ar):null,hs,ar,r)}
+}catch(e){console.error(e);if(activeCamera)$('#st'+activeCamera).textContent='Tracking error: '+(e.message||e);if(!forceCPU){forceCPU=true;HL=null;initHL().catch(()=>{})}}
 raf=requestAnimationFrame(loop)}
-function onHand(r,hs,ar,res){if(teach&&hs.length)teachFrame(hs,ar);if(cur==='C'){if(teach)return;$('#mode').value==='words'?wordStep(res):commHand(r)}else if(cur==='N'){$('#nmode').value==='words'?wordStep(res):navLetter(r)}else learnHand(r)}
+function onHand(r,hs,ar,res){if(teach&&hs.length)teachFrame(hs,ar);if(activeCamera==='C'){if(teach)return;$('#mode').value==='words'?wordStep(res):commHand(r)}else if(activeCamera==='N'){$('#nmode').value==='words'?wordStep(res):navLetter(r)}else learnHand(r)}
 
 let V=[],lastA=null;
 function commHand(r){const L=$('#liveC'),C=$('#confC');if(!r){V=[];lastA=null;L.textContent='No hand';C.textContent='Show your hand to the camera.';return}
@@ -333,11 +333,11 @@ if(cnt>=(S.lang==='ISL'?8:9)&&r.conf>=(S.lang==='ISL'?.22:.55)&&r.label!==lastA)
 /* teach mode: record your own samples (stored on this device) */
 let teach=null;const tcount=()=>{const c={};SAMP.filter(s=>s.lg===S.lang).forEach(s=>c[s.l]=(c[s.l]||0)+1);$('#tc').textContent=Object.keys(c).length?'Taught ('+S.lang+'): '+Object.entries(c).map(([k,v])=>k+'×'+v).join('  '):'Nothing taught yet for '+S.lang+'.'};
 $('#tl').innerHTML=[...'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'].map(k=>`<option>${k}</option>`).join('');tcount();
-function startTeach(){if(cur!=='C')return alert('Start the camera first.');teach={l:$('#tl').value,n:30,k:0};$('#tc').textContent='Recording '+teach.l+'… show the '+S.lang+' sign clearly as shown in the picture; keep all visible hands in frame.'}
+function startTeach(){if(activeCamera!=='C')return alert('Start the camera first.');teach={l:$('#tl').value,n:30,k:0};$('#tc').textContent='Recording '+teach.l+'… show the '+S.lang+' sign clearly as shown in the picture; keep all visible hands in frame.'}
 function teachFrame(hs,ar){if(++teach.k%2)return;SAMP.push({l:teach.l,lg:S.lang,f:featHands(hs,ar).map(v=>+v.toFixed(2))});if(--teach.n<=0){localStorage.sbs2=JSON.stringify(SAMP);teach=null;tcount()}}
-async function guided(){if(cur!=='C')return alert('Start the camera first.');const wait=t=>new Promise(r=>setTimeout(r,t));
-for(const l of[...'ABCDEFGHIKLMNOPQRSTUVWXY']){$('#tl').value=l;for(let c=3;c>0&&cur==='C';c--){$('#tc').textContent='➡️ Show the sign for  '+l+'  in '+c+'…  (hold it steady, tilt slightly)';await wait(1000)}
-if(cur!=='C')return;teach={l,n:20,k:0};while(teach){await wait(100);if(cur!=='C')return}}
+async function guided(){if(activeCamera!=='C')return alert('Start the camera first.');const wait=t=>new Promise(r=>setTimeout(r,t));
+for(const l of[...'ABCDEFGHIKLMNOPQRSTUVWXY']){$('#tl').value=l;for(let c=3;c>0&&activeCamera==='C';c--){$('#tc').textContent='➡️ Show the sign for  '+l+'  in '+c+'…  (hold it steady, tilt slightly)';await wait(1000)}
+if(activeCamera!=='C')return;teach={l,n:20,k:0};while(teach){await wait(100);if(activeCamera!=='C')return}}
 $('#tc').textContent='✅ Done! J and Z need movement, so they are not included. Try your letters now.';tcount()}
 function clearTeach(){if(confirm('Delete all taught samples for '+S.lang+'?')){SAMP=SAMP.filter(s=>s.lg!==S.lang);localStorage.sbs2=JSON.stringify(SAMP);tcount()}}
 /* word recognition: needs models/<lang>/model.onnx + labels.json from the Colab notebook */
@@ -361,13 +361,13 @@ const twList=()=>{wordPanel();$('#twchips').innerHTML=SUG.map(w=>`<button class=
 const SUG=['help','cry','hello','thank you','sorry','please','water','eat','drink','yes','no','stop','pain','toilet','doctor','friend'];
 async function wordPanel(){const el=$('#bw');if(!el)return;const l=S.lang.toLowerCase();try{const lab=await(await fetch('models/'+l+'/labels.json')).json(),h=await fetch('models/'+l+'/model.onnx',{method:'HEAD'});if(!h.ok)throw 0;
 el.innerHTML='<b>Built-in '+S.lang+' words ('+lab.length+')</b><div class="row">'+lab.map(w=>'<span class="chip">'+w+'</span>').join('')+'</div>'}catch(e){el.innerHTML='<div class="note">The built-in '+S.lang+' word model was not found on this site. Upload the <b>models</b> folder (models/'+l+'/model.onnx and labels.json). You can still teach your own words above.</div>'}}
-async function startTeachWord(){if(cur!=='C')return alert('Start the camera first.');const w=$('#tw').value.trim().toLowerCase();if(!w)return alert('Tap or type a word first.');const c=$('#twc'),wait=t=>new Promise(r=>setTimeout(r,t));let got=0;
-for(let k=1;k<=3&&cur==='C';k++){for(let i=3;i>0&&cur==='C';i--){c.textContent='Take '+k+'/3 · get ready to sign "'+w+'" in '+i+'…';await wait(1000)}if(cur!=='C')return;c.textContent='● Take '+k+'/3 · SIGN "'+w+'" NOW (full movement)';await wait(1900);
+async function startTeachWord(){if(activeCamera!=='C')return alert('Start the camera first.');const w=$('#tw').value.trim().toLowerCase();if(!w)return alert('Tap or type a word first.');const c=$('#twc'),wait=t=>new Promise(r=>setTimeout(r,t));let got=0;
+for(let k=1;k<=3&&activeCamera==='C';k++){for(let i=3;i>0&&activeCamera==='C';i--){c.textContent='Take '+k+'/3 · get ready to sign "'+w+'" in '+i+'…';await wait(1000)}if(activeCamera!=='C')return;c.textContent='● Take '+k+'/3 · SIGN "'+w+'" NOW (full movement)';await wait(1900);
 const v=vecWin(performance.now()-150,1500);if(!v){c.textContent='Hand not seen in take '+k+'. Keep your hand in view.';continue}WS.push({w,lg:S.lang,v:Array.from(v,x=>+x.toFixed(2))});got++;localStorage.sbw=JSON.stringify(WS);twList()}
 c.textContent=got?'✅ Saved '+got+' takes of "'+w+'". Switch to Words mode and sign it.':'Nothing saved. Keep your hand in view and try again.'}
 function modeHint(){if($('#mode').value==='words')$('#noteC').textContent='Words mode: movement words like HELP or CRY work best when you record them first in “Teach a word” (about 3 times each), then sign the full movement.';else langNote()}
 function clearWords(){if(confirm('Delete taught words for '+S.lang+'?')){WS=WS.filter(s=>s.lg!==S.lang);localStorage.sbw=JSON.stringify(WS);twList()}}
-async function wordStep(res){const N=cur==='N',L=$(N?'#liveN':'#liveC'),C=$(N?'#confN':'#confC');
+async function wordStep(res){const N=activeCamera==='N',L=$(N?'#liveN':'#liveC'),C=$(N?'#confN':'#confC');
 if(++twN%6===0){const h=taughtMatch();if(h){if(h.ok){L.textContent=h.w;C.textContent='Your taught word · match '+Math.round(h.sc*100)+'%';if(Date.now()-lastW>2200){lastW=Date.now();emitWord(h.w,N);RB=[]}return}else C.textContent='Closest taught word: '+h.w+' (distance '+h.d.toFixed(2)+', needs under 0.45). Sign the full movement.'}}
 const m=await loadWords();if(!m){L.textContent='–';C.textContent=WS.some(x=>x.lg===S.lang)?'Sign a word you taught.':'No '+S.lang+' word model. Teach words in the Teach panel.';return}
 buf.push(res&&res.landmarks.length?wfeat(res):null);if(buf.length>90)buf.shift();const fs=buf.filter(Boolean);if(++fr%10||fs.length<20||wordBusy)return;wordBusy=true;try{const T=30,x=new Float32Array(T*126);for(let i=0;i<T;i++)x.set(fs[Math.round(i*(fs.length-1)/(T-1))],i*126);const out=await m.sess.run({seq:new ort.Tensor('float32',x,[1,T,126])});const logits=out.logits.data,mx=Math.max(...logits),e=[...logits].map(v=>Math.exp(v-mx)),sum=e.reduce((a,b)=>a+b,0),p=e.map(v=>v/sum),i=p.indexOf(Math.max(...p)),label=m.labels[i],conf=p[i];wordVotes.push({label,conf,at:Date.now()});wordVotes=wordVotes.filter(v=>Date.now()-v.at<4500);const vote={};for(const v of wordVotes)vote[v.label]=(vote[v.label]||0)+v.conf;const best=Object.entries(vote).sort((a,b)=>b[1]-a[1])[0];const smooth=best?best[1]/wordVotes.length:conf;L.textContent=best?best[0]:label;C.textContent=Math.round(smooth*100)+'% ('+S.lang+' word model • '+m.labels.length+' trained words)';if(best&&smooth>=.48&&Date.now()-lastW>2500){lastW=Date.now();if(N){propose(navKey(best[0]),'You signed "'+best[0]+'".');buf=[];wordVotes=[];return}$('#out').value+=($('#out').value&&!$('#out').value.endsWith(' ')?' ':'')+best[0]+' ';buf=[];wordVotes=[]}}catch(e){C.textContent='Word model error: '+e.message}finally{wordBusy=false}}
@@ -378,7 +378,7 @@ function fspell(){$('#fsOut').innerHTML=[...$('#fs').value.toUpperCase()].filter
 $('#tgt').innerHTML=[...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'].map(k=>`<option>${k}</option>`).join('');
 function setTarget(){const t=$('#tgt').value;$('#desc').textContent=S.lang==='ISL'?'Copy the sign in the photo. Keep both hands fully inside the frame.':(DESC[t]||'Copy the picture: palm toward the camera, whole hand in view.');$('#lImg').innerHTML=sgImg(t,'sgb')+'<div style="margin-top:10px"><button onclick="teachTarget()">🎓 Teach '+t+' from camera</button></div>';$('#fb').textContent='';renderProg()}
 function renderProg(){const k=S.lang+':'+$('#tgt').value,p=S.prog[k]||{ok:0,tries:0};$('#prog').innerHTML=`<span class="chip">${S.lang} ${$('#tgt').value}: ${p.ok} matched of ${p.tries} attempts</span>`}
-function teachTarget(){if(cur!=='C')return alert('Start the camera in Communicate first. Then return here and show the selected '+S.lang+' sign.');$('#tl').value=$('#tgt').value;startTeach();}
+function teachTarget(){if(activeCamera!=='C')return alert('Start the camera in Communicate first. Then return here and show the selected '+S.lang+' sign.');$('#tl').value=$('#tgt').value;startTeach();}
 let ln=0,lc=null;
 function learnHand(r){const T=$('#tgt').value,L=$('#liveL'),fb=$('#fb');if(!r){L.textContent='No hand';fb.textContent='Show your hand to the camera.';return}L.textContent=r.label||'?';const ok=r.label===T;let msg;
 if(S.lang==='ASL'&&TP[T]&&!TP[T].nd&&r.cv&&!SAMP.some(s=>s.lg==='ASL'&&s.l===T)){const t=TP[T],bad=[];t.c.forEach((v,i)=>{if(Math.abs(r.cv[i]-v)>.45)bad.push((r.cv[i]>v?'straighten your ':'curl your ')+FN[i+1])});if(pen(r.th,t.t)>.5)bad.push('move your thumb '+({u:'straight up beside your index finger',o:'out to the side',a:'across your palm',t:'to touch a fingertip',m:'under your ring finger'})[t.t]);
