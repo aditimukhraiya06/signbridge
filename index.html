@@ -301,9 +301,38 @@ if(k&&k.label&&(S.lang==='ISL'||k.conf>.8||!t||!t.label))return{...(t||{}),...k}
 return t||{label:null,conf:0,top:k?k.top:''}}
 let HL=null,stream=null,activeCamera=null,raf=0,lastT=-1;
 let forceCPU=false,lastChip='';
-async function initHL(){if(HL)return HL;const V='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';const m=await import(V+'/+esm');const f=await m.FilesetResolver.forVisionTasks(V+'/wasm');
-const mk=d=>m.HandLandmarker.createFromOptions(f,{baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',delegate:d},runningMode:'VIDEO',numHands:2,minHandDetectionConfidence:.3,minHandPresenceConfidence:.3,minTrackingConfidence:.3});
-try{HL=await mk(forceCPU?'CPU':'GPU')}catch(e){HL=await mk('CPU')}return HL}
+async function initHL(){
+if(HL)return HL;
+const V='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';
+const status=()=>activeCamera?$('#st'+activeCamera):null;
+const timed=async(promise,label,ms)=>{
+let timer;
+try{
+return await Promise.race([
+promise,
+new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error(label+' timed out after '+Math.round(ms/1000)+' seconds. Check your internet connection, then refresh the page.')),ms)})
+]);
+}finally{clearTimeout(timer)}
+};
+const st=status();
+if(st)st.textContent='Loading MediaPipe library…';
+const m=await timed(import(V+'/+esm'),'MediaPipe library download',20000);
+if(st)st.textContent='Loading camera support files…';
+const f=await timed(m.FilesetResolver.forVisionTasks(V+'/wasm'),'MediaPipe camera support files',20000);
+if(st)st.textContent='Loading hand model (CPU mode)…';
+HL=await timed(m.HandLandmarker.createFromOptions(f,{
+baseOptions:{
+modelAssetPath:'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',
+delegate:'CPU'
+},
+runningMode:'VIDEO',
+numHands:2,
+minHandDetectionConfidence:.3,
+minHandPresenceConfidence:.3,
+minTrackingConfidence:.3
+}),'Hand model download / initialization',45000);
+return HL;
+}
 async function toggleCam(v){
 if(activeCamera===v){stopCam();return}
 stopCam();
