@@ -253,7 +253,7 @@ if(rec){rec.stop();rec=null;return}rec=new SR();rec.lang=S.lang==='ISL'?'en-IN':
 rec.onresult=e=>cb(e.results[e.results.length-1][0].transcript);rec.onerror=e=>{$('#noteM').textContent=e.error==='not-allowed'?'Microphone permission denied. Allow it in browser settings.':'Speech error: '+e.error};rec.onend=()=>{rec=null;if(btn)btn.textContent='🎤 Start listening'};rec.start();if(btn)btn.textContent='⏹ Stop'}
 function mic(){listen(t=>addLog('Them',t),$('#bM'))}
 function addLog(w,t){t=(t||'').trim();if(!t)return;S.hist.push({w,t,at:new Date().toISOString()});save();renderLog()}
-function renderLog(){$('#log').innerHTML=S.hist.length?S.hist.map(h=>`<div><small>${new Date(h.at).toLocaleTimeString()}</small> <b>${h.w}:</b> ${h.t.replace(/</g,'&lt;')}</div>`).join(''):'No messages yet.'}renderLog();
+function renderLog(){const lg=$('#log');if(!lg)return;lg.innerHTML=S.hist.length?S.hist.map(h=>`<div><small>${new Date(h.at).toLocaleTimeString()}</small> <b>${h.w}:</b> ${h.t.replace(/</g,'&lt;')}</div>`).join(''):'No messages yet.'}renderLog();
 function exportLog(){const b=new Blob([S.hist.map(h=>`[${h.at}] ${h.w}: ${h.t}`).join('\n')],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='signbridge-transcript.txt';a.click()}
 
 /* ---- hand tracking + classifiers ---- */
