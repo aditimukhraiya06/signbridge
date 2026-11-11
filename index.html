@@ -249,8 +249,12 @@ function voices(){const s=$('#voice');s.innerHTML=speechSynthesis.getVoices().ma
 if(window.speechSynthesis){speechSynthesis.onvoiceschanged=voices;voices()}
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec;
 function listen(cb,btn){if(!SR){return alert('Speech recognition is not supported in this browser. Try Chrome.')}
-if(rec){rec.stop();rec=null;return}rec=new SR();rec.lang=S.lang==='ISL'?'en-IN':'en-US';rec.interimResults=false;
-rec.onresult=e=>cb(e.results[e.results.length-1][0].transcript);rec.onerror=e=>{$('#noteM').textContent=e.error==='not-allowed'?'Microphone permission denied. Allow it in browser settings.':'Speech error: '+e.error};rec.onend=()=>{rec=null;if(btn)btn.textContent='🎤 Start listening'};rec.start();if(btn)btn.textContent='⏹ Stop'}
+if(rec){try{rec.stop()}catch(_){}if(btn)btn.textContent='🎤 Start listening';return}
+const r=new SR();rec=r;r.lang=S.lang==='ISL'?'en-IN':'en-US';r.interimResults=false;r.continuous=false;const nm=$('#noteM');if(nm)nm.textContent='';
+r.onresult=e=>cb(e.results[e.results.length-1][0].transcript);
+r.onerror=e=>{if(e.error==='aborted')return;if(nm)nm.textContent=e.error==='not-allowed'||e.error==='service-not-allowed'?'Microphone permission denied. Allow it in browser settings.':e.error==='no-speech'?'No speech heard. Tap Start listening and try again.':'Speech error: '+e.error};
+r.onend=()=>{if(rec===r)rec=null;if(btn)btn.textContent='🎤 Start listening'};
+try{r.start();if(btn)btn.textContent='⏹ Stop'}catch(e){if(rec===r)rec=null;if(nm)nm.textContent='Speech error: '+e.message}}
 function mic(){listen(t=>addLog('Them',t),$('#bM'))}
 function addLog(w,t){t=(t||'').trim();if(!t)return;S.hist.push({w,t,at:new Date().toISOString()});save();renderLog()}
 function renderLog(){const lg=$('#log');if(!lg)return;lg.innerHTML=S.hist.length?S.hist.map(h=>`<div><small>${new Date(h.at).toLocaleTimeString()}</small> <b>${h.w}:</b> ${h.t.replace(/</g,'&lt;')}</div>`).join(''):'No messages yet.'}renderLog();
