@@ -131,7 +131,38 @@ select:focus,input:focus{border-color:var(--accent);box-shadow:0 0 0 3px #b56bd9
 :root{--header-h:86px}
 header{min-height:var(--header-h);height:var(--header-h);position:sticky!important;top:0!important;z-index:50!important;isolation:isolate;background:var(--card)!important;box-shadow:0 5px 18px #6c3df522}
 main{position:relative;z-index:1!important}
-@media(max-width:700px){header{padding:10px 12px;--header-h:76px}header b{font-size:18px}}\n</style>
+@media(max-width:700px){header{padding:10px 12px;--header-h:76px}header b{font-size:18px}}\n
+/* ===== Sign Your Way accessibility expansion (additive; existing styles preserved) ===== */
+.syw-panel{margin-top:14px}
+.syw-panel h3{margin:0 0 8px;color:var(--accent-dark)}
+.syw-muted{font-size:13px;color:var(--mut)}
+.syw-caption{min-height:110px;max-height:300px;overflow:auto;border:2px solid var(--line);border-radius:16px;padding:16px;background:var(--card);font-size:clamp(20px,4vw,30px);font-weight:700;line-height:1.45;overflow-wrap:anywhere}
+.syw-caption.interim{opacity:.72}
+.syw-status{display:inline-flex;align-items:center;gap:7px;padding:5px 10px;border-radius:99px;background:#b56bd91a;border:1px solid var(--line);font-size:12px;font-weight:700}
+.syw-dot{width:8px;height:8px;border-radius:50%;background:#999}
+.syw-dot.live{background:#16a36a;box-shadow:0 0 0 4px #16a36a22}
+.syw-feature-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.syw-feature{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:13px}
+.syw-feature h4{margin:0 0 5px}
+.syw-feature p{font-size:13px;color:var(--mut);margin:4px 0 10px}
+.syw-inline{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.syw-inline>*{flex:1 1 130px}
+.syw-qr{min-height:170px;display:grid;place-items:center;background:#fff;border-radius:14px;padding:12px}
+.syw-qr canvas,.syw-qr img{max-width:100%;height:auto}
+.syw-list{display:grid;gap:8px}
+.syw-item{padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+.syw-item small{color:var(--mut)}
+.syw-alert{border:2px solid #e5a33d;background:#fff7e7;color:#4a3212;padding:12px;border-radius:14px}
+.syw-pill{display:inline-block;border-radius:99px;padding:3px 9px;background:#b56bd91a;border:1px solid var(--line);font-size:11px;font-weight:700}
+.syw-range{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.syw-range input{grid-column:1/-1}
+.syw-board button{white-space:normal}
+.syw-big-button{min-height:58px;font-size:16px}
+.syw-transcript{max-height:230px;overflow:auto;display:grid;gap:7px}
+.syw-transcript-row{padding:9px 11px;background:var(--card);border:1px solid var(--line);border-radius:11px}
+@media(max-width:600px){.syw-caption{min-height:90px}.syw-inline>*{flex-basis:100%}.syw-qr{min-height:145px}}
+
+</style>
 </head>
 <body>
 <header><div class="logo">✋</div><b>Sign Your Way</b><span class="chip" id="net"></span><div class="sp"></div>
@@ -167,6 +198,75 @@ main{position:relative;z-index:1!important}
 <div class="card"><b>Text to fingerspelling</b><input id="fs" placeholder="Type a word" oninput="fspell()"><div id="fsOut" class="row"></div>
 <div class="note">Fingerspelling cards only. Full ASL/ISL sentence translation is not implemented; this does not substitute signs word by word.</div></div>
 
+
+<div class="card syw-panel" id="sywCommunicationTools">
+  <h3>♿ Live Speech Captions & communication assistance</h3>
+  <p class="syw-muted">Live captions turn nearby speech into readable text. You do not need to sign or speak to use this feature.</p>
+  <div class="row">
+    <label style="flex:1;min-width:150px">Caption language
+      <select id="sywCaptionLang"><option value="en-IN">English (India)</option><option value="hi-IN">Hindi</option><option value="en-US">English (US)</option></select>
+    </label>
+    <label style="flex:1;min-width:150px">Use mode
+      <select id="sywCaptionMode"><option value="everyday">Everyday conversation</option><option value="classroom">Classroom / lecture</option><option value="video">Video-call companion</option></select>
+    </label>
+  </div>
+  <div class="row">
+    <span class="syw-status"><i class="syw-dot" id="sywCaptionDot"></i><span id="sywCaptionStatus">Captions stopped</span></span>
+    <button class="pri" id="sywCaptionStart" onclick="sywStartCaptions()">▶ Start live captions</button>
+    <button id="sywCaptionStop" onclick="sywStopCaptions()" disabled>Stop</button>
+  </div>
+  <div class="syw-caption" id="sywCaptionLive" aria-live="polite">Your captions will appear here.</div>
+  <div class="row">
+    <label style="flex:1">Speaker identification (manual label)
+      <select id="sywSpeaker"><option>Speaker 1</option><option>Speaker 2</option><option>Lecturer</option><option>Receptionist</option><option>Other speaker</option></select>
+    </label>
+    <button onclick="sywAddSpeakerLabel()">Add label to next caption</button>
+    <button onclick="sywClearCaption()">Clear current</button>
+  </div>
+  <div class="note">Speaker labels are selected manually; this browser version does not reliably identify different voices automatically. Classroom mode captions speech picked up by the device microphone. It does not broadcast a lecturer's audio to other students' phones; that requires a shared live audio stream and backend. In video-call mode, captions listen through your device microphone. They are not a guaranteed direct capture of Zoom, Meet or other apps' internal audio.</div>
+  <div class="syw-feature-grid">
+    <div class="syw-feature">
+      <h4>Caption appearance</h4>
+      <div class="syw-range"><label for="sywCaptionSize">Text size</label><b id="sywCaptionSizeValue">26 px</b><input id="sywCaptionSize" type="range" min="18" max="42" value="26" oninput="sywApplyCaptionStyle()"></div>
+      <label>Caption background<select id="sywCaptionBg" onchange="sywApplyCaptionStyle()"><option value="card">Match website</option><option value="#111827">Black</option><option value="#ffffff">White</option><option value="#fff4cc">Warm cream</option></select></label>
+      <label>Text contrast<select id="sywCaptionContrast" onchange="sywApplyCaptionStyle()"><option value="auto">Automatic</option><option value="#ffffff">White text</option><option value="#111827">Dark text</option></select></label>
+      <label>Caption alignment<select id="sywCaptionPosition" onchange="sywApplyCaptionStyle()"><option value="left">Left</option><option value="center">Center</option><option value="right">Right</option></select></label>
+    </div>
+    <div class="syw-feature">
+      <h4>Correct a caption</h4>
+      <p>Speech recognition can mishear names and technical words. Edit the transcript before saving it.</p>
+      <textarea id="sywCaptionCorrection" rows="4" placeholder="Corrected caption text…"></textarea>
+      <button class="pri" onclick="sywSaveCorrection()">Save corrected caption</button>
+    </div>
+  </div>
+  <div class="row" style="justify-content:space-between"><b>Conversation / lecture notes</b><span class="syw-pill" id="sywCaptionCount">0 saved lines</span></div>
+  <div class="syw-transcript" id="sywTranscript"><div class="syw-muted">Saved captions will appear here.</div></div>
+  <div class="row"><button onclick="sywExportTranscript()">⬇ Export notes (.txt)</button><button onclick="sywClearTranscript()">Clear saved notes</button></div>
+</div>
+
+<div class="card syw-panel">
+  <h3>🪪 Personal communication QR card</h3>
+  <p class="syw-muted">Create a QR code containing a short message about how you prefer to communicate. The code is generated on this device.</p>
+  <div class="grid">
+    <div>
+      <label>Your display name (optional)<input id="sywProfileName" placeholder="Name"></label>
+      <label>Preferred communication<select id="sywProfileMethod"><option>Text / typing</option><option>Indian Sign Language (ISL)</option><option>American Sign Language (ASL)</option><option>Speech and captions</option><option>Face-to-face with clear visibility</option></select></label>
+      <label>Message to show<textarea id="sywProfileMessage" rows="3">I am deaf or hard of hearing. Please face me while speaking, or communicate with me through text.</textarea></label>
+      <button class="pri" onclick="sywGenerateQR()">Generate my QR card</button>
+      <button onclick="sywCopyProfile()">Copy message</button>
+    </div>
+    <div><div class="syw-qr" id="sywQrOutput"><span class="syw-muted">Your QR code will appear here.</span></div><p class="syw-muted">The QR contains only the details you enter above. Avoid adding private medical or contact information.</p></div>
+  </div>
+</div>
+
+<div class="card syw-panel">
+  <h3>🍽️ Restaurant & shopping quick messages</h3>
+  <p class="syw-muted">Tap a message to display it in large text and show it to staff. Edit before showing if needed.</p>
+  <div class="syw-feature-grid syw-board" id="sywQuickBoard"></div>
+  <div class="row"><input id="sywQuickCustom" placeholder="Write your own message" style="flex:1"><button class="pri" onclick="sywShowQuickCustom()">Show message</button></div>
+  <div class="syw-alert" id="sywQuickDisplay" style="display:none;font-size:22px;font-weight:700;text-align:center" aria-live="polite"></div>
+</div>
+
 </section>
 
 <section id="learn"><h2>Learn</h2>
@@ -186,6 +286,34 @@ main{position:relative;z-index:1!important}
 <div class="card"><b>Add your own phrase</b><div class="row"><input id="np" placeholder="e.g. I have a peanut allergy" style="flex:1"><button onclick="addPhrase()">Save</button></div></div>
 <div class="card"><b>Location</b><div class="row"><button onclick="locate()">Get my location</button></div><div id="loc">Not shared. Location is only read when you press the button.</div></div>
 <div class="card"><b>Trusted contacts</b><div class="row"><input id="cn" placeholder="Name" style="flex:1"><input id="cp" placeholder="Phone" type="tel" style="flex:1"><button onclick="addContact()">Add</button></div><div id="cts"></div></div>
+
+<div class="card syw-panel">
+  <h3>🔔 Smart sound & environmental alerts</h3>
+  <p class="syw-muted">When enabled, the microphone monitors sound level while this page is open. A sudden loud sound can trigger a visual and vibration alert.</p>
+  <div class="row"><button class="pri" id="sywSoundStart" onclick="sywStartSoundMonitor()">Start sound monitor</button><button id="sywSoundStop" onclick="sywStopSoundMonitor()" disabled>Stop monitor</button><span class="syw-status" id="sywSoundStatus">Monitor off</span></div>
+  <div class="note">Important limitation: this web prototype detects loud or sudden sound activity; it does not reliably identify whether the sound is a fire alarm, smoke alarm, glass breaking or siren. Do not use it as a replacement for certified alarms or safety equipment.</div>
+  <div class="row"><label style="flex:1">Sensitivity <select id="sywSoundSensitivity"><option value="0.18">High</option><option value="0.28" selected>Medium</option><option value="0.4">Low</option></select></label></div>
+  <div id="sywSoundAlert" class="syw-alert" style="display:none" role="alert">Loud sound activity detected. Check your surroundings.</div>
+</div>
+<div class="card syw-panel">
+  <h3>📳 Custom vibration patterns</h3>
+  <p class="syw-muted">Test distinct vibration patterns for alerts generated by Sign Your Way. Vibration support depends on your browser and device.</p>
+  <div class="row"><button onclick="sywVibrate('door')">Test doorbell pattern</button><button onclick="sywVibrate('message')">Test message pattern</button><button class="dan" onclick="sywVibrate('emergency')">Test emergency pattern</button></div>
+  <p class="syw-muted" id="sywVibrationStatus">No vibration sent yet.</p>
+</div>
+<div class="card syw-panel">
+  <h3>📱 Missed call & visitor awareness</h3>
+  <p class="syw-muted">This website cannot read the phone's native missed-call log or detect a physical doorbell by itself. Use the quick alert controls below for reminders and in-app notifications; enable system-level flash/vibration alerts in your phone settings for native calls and doorbells.</p>
+  <div class="row"><button onclick="sywNotifyPermission()">Enable browser notifications</button><button onclick="sywInAppAlert('Missed call reminder')">Log a missed call</button><button onclick="sywInAppAlert('Visitor at the door')">Log a visitor</button></div>
+  <div id="sywAwarenessLog" class="syw-list"><div class="syw-muted">No in-app alerts yet.</div></div>
+</div>
+<div class="card syw-panel">
+  <h3>🆘 Trusted contact SOS</h3>
+  <p class="syw-muted">Your existing trusted contacts remain saved. Review them above, then prepare a message to send. Your messaging app will ask you to confirm sending.</p>
+  <button class="dan syw-big-button" onclick="sywPrepareSOS()">Prepare SOS for trusted contacts</button>
+  <div class="syw-muted" id="sywSOSStatus" aria-live="polite"></div>
+</div>
+
 </section>
 
 <section id="nav"><h2>SmartNav</h2>
@@ -202,6 +330,40 @@ main{position:relative;z-index:1!important}
 <div class="card campusSearch"><b>🔎 Search campus rooms, labs &amp; facilities</b><p style="font-size:13px;color:var(--mut);margin:4px 0 10px">Try “ECE lab”, “Communication Lab”, “Room G-10”, “B Block”, “ABB-III” or a lab code.</p><div class="row"><input id="campusQ" placeholder="Search a classroom, laboratory, room or block…" autocomplete="off" oninput="campusSearch()" style="flex:1"><button onclick="campusSearch(true)">Search</button></div><div id="campusResults" class="campusResults"></div></div>
 <div class="row"><button class="pri" id="cb62" onclick="campusShow('s62')">JIIT Sector 62 (main campus)</button><button id="cb128" onclick="campusShow('s128')">JIIT Sector 128</button><a id="cdir" target="_blank" rel="noopener"><button class="pri">🧭 Directions to campus</button></a></div>
 <div id="cinfo" class="note">Campus database ready. Search above for an exact room or laboratory.</div><div id="cmap"></div><div id="clist" class="card" style="margin-top:12px"></div></div>
+
+<div class="card syw-panel">
+  <h3>📢 Visual announcement board</h3>
+  <p class="syw-muted">Create and keep visual reminders for class changes, room changes, events and campus notices on this device. For official campus-wide updates, this needs an authorised college announcement feed.</p>
+  <div class="row"><input id="sywAnnouncementTitle" placeholder="Announcement, e.g. ECE lecture moved to ABB-3" style="flex:1"><button class="pri" onclick="sywAddAnnouncement()">Post on my board</button></div>
+  <div class="syw-list" id="sywAnnouncements"><div class="syw-muted">No announcements saved yet.</div></div>
+</div>
+<div class="card syw-panel">
+  <h3>🔢 Queue & token alerts</h3>
+  <p class="syw-muted">Enter the token currently being served. Sign Your Way will alert you when it matches your token while this page remains open.</p>
+  <div class="row"><label style="flex:1">Your token<input id="sywMyToken" placeholder="e.g. 042"></label><label style="flex:1">Now serving<input id="sywCurrentToken" placeholder="e.g. 039"></label></div>
+  <div class="row"><button class="pri" onclick="sywCheckToken()">Check token</button><button onclick="sywEnableQueueNotifications()">Enable notifications</button><span class="syw-status" id="sywQueueStatus">Waiting for token</span></div>
+  <div class="syw-muted" id="sywQueueMessage">No token alert is active.</div>
+</div>
+<div class="card syw-panel">
+  <h3>📍 Deaf-friendly places directory</h3>
+  <p class="syw-muted">Save places that you have personally verified for communication accessibility. Listings are user-submitted and stored locally; they are not independently verified by Sign Your Way.</p>
+  <div class="row"><input id="sywPlaceName" placeholder="Place name" style="flex:1"><input id="sywPlaceArea" placeholder="Area / address" style="flex:1"></div>
+  <div class="row"><select id="sywPlaceSupport"><option>Written communication welcomed</option><option>Sign-language interpreter available</option><option>Visual queue / announcements</option><option>Accessible service counter</option><option>Other communication support</option></select><button class="pri" onclick="sywAddPlace()">Save place</button></div>
+  <input id="sywPlaceSearch" placeholder="Search saved places…" oninput="sywRenderPlaces()">
+  <div class="syw-list" id="sywPlaces"><div class="syw-muted">No places saved. Add a place you have checked.</div></div>
+</div>
+<div class="card syw-panel">
+  <h3>⚙️ Personal accessibility profile</h3>
+  <p class="syw-muted">Save your communication preferences on this device. These settings are used to personalise the QR card and are not sent to a server.</p>
+  <div class="grid">
+    <label>Preferred language<select id="sywPrefLanguage"><option>ISL</option><option>ASL</option><option>English text</option><option>Hindi text</option></select></label>
+    <label>Preferred communication<select id="sywPrefMethod"><option>Text / typing</option><option>Sign language</option><option>Live captions</option><option>Face-to-face communication</option></select></label>
+    <label>Vibration alerts<select id="sywPrefVibration"><option value="on">On</option><option value="off">Off</option></select></label>
+    <label>Caption size<select id="sywPrefCaption"><option value="22">Small</option><option value="26" selected>Standard</option><option value="34">Large</option><option value="40">Extra large</option></select></label>
+  </div>
+  <button class="pri" onclick="sywSaveAccessibilityProfile()">Save accessibility preferences</button><span class="syw-muted" id="sywProfileSaved"></span>
+</div>
+
 </section>
 </main>
 <div id="ov"><p id="ovt"></p><div class="row"><button class="pri" onclick="say(ovt.textContent)">🔊 Speak</button><button onclick="ov.classList.remove('on')">Close</button></div></div>
@@ -726,5 +888,252 @@ function renderHomeStats(){
 function loadRewardTheme(){document.documentElement.dataset.reward=localStorage.rewardTheme||'off'}
 loadRewardTheme();renderHomeStats();renderStreak();
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js'));
+
+/* ===== Sign Your Way accessibility expansion: additive features ===== */
+const SYW = {
+  captions: [], capRec: null, capRunning: false, capPendingLabel: false,
+  soundStream: null, soundCtx: null, soundFrame: null, soundCooldown: 0,
+  qrReady: false, queueTimer: null, queueAlerted: false
+};
+const sywEsc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sywRead = (key, fallback=[]) => { try { return JSON.parse(localStorage.getItem('syw_'+key) || JSON.stringify(fallback)); } catch (_) { return fallback; } };
+const sywWrite = (key, value) => localStorage.setItem('syw_'+key, JSON.stringify(value));
+function sywSetCaptionStatus(text,live=false){
+  const el=document.getElementById('sywCaptionStatus'),dot=document.getElementById('sywCaptionDot');
+  if(el)el.textContent=text;if(dot)dot.classList.toggle('live',live);
+  const a=document.getElementById('sywCaptionStart'),b=document.getElementById('sywCaptionStop');
+  if(a)a.disabled=live;if(b)b.disabled=!live;
+}
+function sywStartCaptions(){
+  const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!Speech){alert('Live captions need browser speech recognition. Please use a supported version of Chrome or Edge.');return;}
+  if(SYW.capRec){try{SYW.capRec.stop()}catch(_){}}
+  const r=new Speech();SYW.capRec=r;SYW.capRunning=true;
+  r.lang=document.getElementById('sywCaptionLang').value||'en-IN';
+  r.continuous=true;r.interimResults=true;r.maxAlternatives=1;
+  let finalIndex=0;
+  r.onstart=()=>sywSetCaptionStatus('Listening for speech…',true);
+  r.onresult=e=>{
+    let interim='';
+    for(let i=finalIndex;i<e.results.length;i++){
+      const result=e.results[i],txt=result[0]?.transcript?.trim()||'';
+      if(result.isFinal&&txt){sywSaveCaptionLine(txt);finalIndex=i+1;}
+      else if(txt)interim+=txt+' ';
+    }
+    const last=SYW.captions[SYW.captions.length-1];
+    const box=document.getElementById('sywCaptionLive');
+    if(box){box.textContent=(last?last.speaker+': '+last.text:'')+(interim?'  '+interim.trim():'');box.classList.toggle('interim',!!interim);}
+  };
+  r.onerror=e=>{
+    if(e.error==='not-allowed'||e.error==='service-not-allowed'){SYW.capRunning=false;sywSetCaptionStatus('Microphone permission denied');}
+    else if(e.error!=='no-speech'&&e.error!=='aborted')sywSetCaptionStatus('Speech recognition issue: '+e.error);
+  };
+  r.onend=()=>{
+    if(SYW.capRunning){try{r.start()}catch(_){sywSetCaptionStatus('Reconnecting…',true)}}
+    else sywSetCaptionStatus('Captions stopped');
+  };
+  try{r.start()}catch(e){SYW.capRunning=false;sywSetCaptionStatus('Could not start captions');alert('Could not start speech recognition. Check microphone permission and try again.');}
+}
+function sywStopCaptions(){
+  SYW.capRunning=false;
+  if(SYW.capRec){try{SYW.capRec.stop()}catch(_){}}
+  sywSetCaptionStatus('Captions stopped');
+}
+function sywSaveCaptionLine(text){
+  const speaker=document.getElementById('sywSpeaker')?.value||'Speaker 1';
+  const mode=document.getElementById('sywCaptionMode')?.value||'everyday';
+  const item={text,speaker,mode,at:new Date().toISOString()};
+  SYW.captions.push(item);if(SYW.captions.length>500)SYW.captions.shift();
+  sywWrite('captions',SYW.captions);sywRenderTranscript();
+  const box=document.getElementById('sywCaptionLive');if(box)box.textContent=speaker+': '+text;
+}
+function sywRenderTranscript(){
+  const box=document.getElementById('sywTranscript'),count=document.getElementById('sywCaptionCount');
+  if(!box)return;
+  if(count)count.textContent=SYW.captions.length+' saved lines';
+  box.innerHTML=SYW.captions.length?SYW.captions.slice(-100).reverse().map(x=>`<div class="syw-transcript-row"><small>${sywEsc(new Date(x.at).toLocaleTimeString())} · ${sywEsc(x.mode)} · <b>${sywEsc(x.speaker)}</b></small><div>${sywEsc(x.text)}</div></div>`).join(''):'<div class="syw-muted">Saved captions will appear here.</div>';
+}
+function sywAddSpeakerLabel(){SYW.capPendingLabel=true;const b=document.getElementById('sywCaptionLive');if(b)b.textContent='Next recognised caption will be labelled '+(document.getElementById('sywSpeaker')?.value||'Speaker 1')+'.'}
+function sywClearCaption(){const b=document.getElementById('sywCaptionLive');if(b){b.textContent='Your captions will appear here.';b.classList.remove('interim')}}
+function sywApplyCaptionStyle(){
+  const box=document.getElementById('sywCaptionLive');if(!box)return;
+  const size=+document.getElementById('sywCaptionSize').value;
+  const bg=document.getElementById('sywCaptionBg').value;
+  const contrast=document.getElementById('sywCaptionContrast').value;
+  const pos=document.getElementById('sywCaptionPosition').value;
+  box.style.fontSize=size+'px';box.style.background=bg==='card'?'var(--card)':bg;
+  box.style.color=contrast==='auto'?'var(--ink)':contrast;
+  box.style.padding='16px';box.style.textAlign=pos;
+  document.getElementById('sywCaptionSizeValue').textContent=size+' px';
+}
+function sywSaveCorrection(){
+  const t=document.getElementById('sywCaptionCorrection').value.trim();
+  if(!t){alert('Enter the corrected caption first.');return;}
+  if(SYW.captions.length){
+    SYW.captions[SYW.captions.length-1].text=t;
+    SYW.captions[SYW.captions.length-1].corrected=true;
+    sywWrite('captions',SYW.captions);sywRenderTranscript();
+    document.getElementById('sywCaptionLive').textContent=(SYW.captions[SYW.captions.length-1].speaker||'Speaker 1')+': '+t;
+  }else sywSaveCaptionLine(t);
+  document.getElementById('sywCaptionCorrection').value='';
+}
+function sywExportTranscript(){
+  if(!SYW.captions.length){alert('There are no saved captions to export yet.');return;}
+  const body=SYW.captions.map(x=>`[${new Date(x.at).toLocaleString()}] ${x.speaker}: ${x.text}`).join('\n');
+  const a=document.createElement('a'),u=URL.createObjectURL(new Blob([body],{type:'text/plain;charset=utf-8'}));
+  a.href=u;a.download='sign-your-way-conversation-notes.txt';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);
+}
+function sywClearTranscript(){if(!confirm('Clear all saved caption notes on this device?'))return;SYW.captions=[];sywWrite('captions',[]);sywRenderTranscript();sywClearCaption()}
+function sywLoadQRLibrary(){
+  if(window.QRCode)return Promise.resolve(true);
+  return new Promise(resolve=>{
+    const old=document.querySelector('script[data-syw-qr]');if(old){old.addEventListener('load',()=>resolve(!!window.QRCode));old.addEventListener('error',()=>resolve(false));return;}
+    const sc=document.createElement('script');sc.src='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';sc.async=true;sc.dataset.sywQr='1';
+    sc.onload=()=>resolve(!!window.QRCode);sc.onerror=()=>resolve(false);document.head.appendChild(sc);
+  });
+}
+function sywProfileText(){
+  const name=document.getElementById('sywProfileName').value.trim();
+  const method=document.getElementById('sywProfileMethod').value;
+  const message=document.getElementById('sywProfileMessage').value.trim();
+  return `${name?name+' — ':''}My communication preference: ${method}. ${message}`;
+}
+async function sywGenerateQR(){
+  const box=document.getElementById('sywQrOutput');box.innerHTML='';
+  const ok=await sywLoadQRLibrary();
+  if(!ok){box.textContent='QR generator could not load. Check your internet connection and try again.';return;}
+  try{new QRCode(box,{text:sywProfileText(),width:180,height:180,colorDark:'#241a3a',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});}
+  catch(e){box.textContent='Could not generate this QR code. Shorten the message and try again.';}
+}
+async function sywCopyProfile(){
+  const text=sywProfileText();
+  try{await navigator.clipboard.writeText(text);alert('Communication message copied.');}
+  catch(_){const t=document.createElement('textarea');t.value=text;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();alert('Communication message copied.');}
+}
+const SYW_QUICK=[
+  'Please face me while speaking.','I am deaf or hard of hearing. Please communicate through text.',
+  'Please write that down.','Could you repeat that, please?','I would like to see the menu, please.',
+  'Please show me the total price.','I need help finding this location.','Please call my token number visually if possible.',
+  'I have an allergy. Please check the ingredients.','Thank you for your patience.'
+];
+function sywInitQuickBoard(){
+  const box=document.getElementById('sywQuickBoard');if(!box)return;
+  box.innerHTML=SYW_QUICK.map((t,i)=>`<button class="syw-feature" onclick="sywShowQuick(${i})">${sywEsc(t)}</button>`).join('');
+}
+function sywShowQuick(i){const box=document.getElementById('sywQuickDisplay');box.textContent=SYW_QUICK[i];box.style.display='block';box.scrollIntoView({behavior:'smooth',block:'nearest'})}
+function sywShowQuickCustom(){const t=document.getElementById('sywQuickCustom').value.trim();if(!t)return;const box=document.getElementById('sywQuickDisplay');box.textContent=t;box.style.display='block';}
+function sywVibrate(type){
+  const patterns={door:[120,80,120],message:[80,60,80],emergency:[300,120,300,120,600]};
+  const ok=!!navigator.vibrate?.(patterns[type]||[100]);
+  document.getElementById('sywVibrationStatus').textContent=ok?'Vibration pattern sent: '+type+'.':'Vibration is not supported or is blocked by this device/browser.';
+}
+async function sywStartSoundMonitor(){
+  if(!navigator.mediaDevices?.getUserMedia||!window.AudioContext){alert('Microphone sound monitoring is not supported in this browser.');return;}
+  try{
+    SYW.soundStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+    SYW.soundCtx=new AudioContext();const source=SYW.soundCtx.createMediaStreamSource(SYW.soundStream);
+    const analyser=SYW.soundCtx.createAnalyser();analyser.fftSize=1024;source.connect(analyser);
+    const data=new Uint8Array(analyser.fftSize);
+    document.getElementById('sywSoundStatus').textContent='Listening';document.getElementById('sywSoundStart').disabled=true;document.getElementById('sywSoundStop').disabled=false;
+    const tick=()=>{
+      if(!SYW.soundCtx)return;
+      analyser.getByteTimeDomainData(data);let sum=0;
+      for(let i=0;i<data.length;i++){const v=(data[i]-128)/128;sum+=v*v;}
+      const rms=Math.sqrt(sum/data.length),threshold=+document.getElementById('sywSoundSensitivity').value;
+      if(rms>threshold&&Date.now()-SYW.soundCooldown>5000){
+        SYW.soundCooldown=Date.now();const a=document.getElementById('sywSoundAlert');a.style.display='block';
+        a.textContent='Loud sound activity detected ('+Math.round(rms*100)+'% level). Check your surroundings.';
+        if(document.getElementById('sywPrefVibration')?.value!=='off')sywVibrate('emergency');
+        sywBrowserNotify('Sound activity detected','Please check your surroundings.');
+        setTimeout(()=>{a.style.display='none'},6500);
+      }
+      SYW.soundFrame=requestAnimationFrame(tick);
+    };tick();
+  }catch(e){document.getElementById('sywSoundStatus').textContent='Microphone unavailable';alert('Could not start microphone monitoring. Allow microphone access and keep this page open.');sywStopSoundMonitor();}
+}
+function sywStopSoundMonitor(){
+  if(SYW.soundFrame)cancelAnimationFrame(SYW.soundFrame);SYW.soundFrame=null;
+  if(SYW.soundStream)SYW.soundStream.getTracks().forEach(t=>t.stop());SYW.soundStream=null;
+  if(SYW.soundCtx){SYW.soundCtx.close().catch(()=>{});SYW.soundCtx=null;}
+  const st=document.getElementById('sywSoundStatus');if(st)st.textContent='Monitor off';
+  const a=document.getElementById('sywSoundStart'),b=document.getElementById('sywSoundStop');if(a)a.disabled=false;if(b)b.disabled=true;
+}
+async function sywNotifyPermission(){
+  if(!('Notification'in window)){alert('Browser notifications are not supported here.');return;}
+  const p=await Notification.requestPermission();alert(p==='granted'?'Browser notifications enabled.':'Notifications were not enabled.');
+}
+function sywBrowserNotify(title,body){
+  if('Notification'in window&&Notification.permission==='granted'&&document.hidden){try{new Notification(title,{body})}catch(_){}}
+}
+function sywInAppAlert(type){
+  const list=sywRead('awareness',[]);list.unshift({type,at:new Date().toISOString()});sywWrite('awareness',list.slice(0,30));sywRenderAwareness();
+  sywBrowserNotify(type,'Open Sign Your Way to view this alert.');
+  if(document.getElementById('sywPrefVibration')?.value!=='off')sywVibrate(type==='Visitor at the door'?'door':'message');
+}
+function sywRenderAwareness(){
+  const box=document.getElementById('sywAwarenessLog');if(!box)return;const a=sywRead('awareness',[]);
+  box.innerHTML=a.length?a.map(x=>`<div class="syw-item"><b>${sywEsc(x.type)}</b><br><small>${sywEsc(new Date(x.at).toLocaleString())}</small></div>`).join(''):'<div class="syw-muted">No in-app alerts yet.</div>';
+}
+function sywPrepareSOS(){
+  const contacts=Array.isArray(S?.contacts)?S.contacts:[];
+  const box=document.getElementById('sywSOSStatus');
+  if(!contacts.length){box.textContent='Add a trusted contact in the existing Trusted contacts section first.';return;}
+  let body='I need assistance. This is an SOS message from Sign Your Way.';
+  if(typeof here!=='undefined'&&here?.latitude)body+=' My location: https://www.openstreetmap.org/?mlat='+here.latitude+'&mlon='+here.longitude;
+  box.innerHTML='<b>Choose a trusted contact. Your messaging app will open with a prefilled message; you must review and send it.</b><div class="row">'+contacts.map(c=>`<a href="sms:${encodeURIComponent(c.p)}?body=${encodeURIComponent(body)}"><button>${sywEsc(c.n)}</button></a>`).join('')+'</div>';
+}
+function sywAddAnnouncement(){
+  const t=document.getElementById('sywAnnouncementTitle').value.trim();if(!t)return;
+  const a=sywRead('announcements',[]);a.unshift({t,at:new Date().toISOString()});sywWrite('announcements',a.slice(0,50));
+  document.getElementById('sywAnnouncementTitle').value='';sywRenderAnnouncements();sywBrowserNotify('Announcement saved',t);
+}
+function sywRenderAnnouncements(){
+  const box=document.getElementById('sywAnnouncements');if(!box)return;const a=sywRead('announcements',[]);
+  box.innerHTML=a.length?a.map((x,i)=>`<div class="syw-item"><b>${sywEsc(x.t)}</b><br><small>${sywEsc(new Date(x.at).toLocaleString())} · Saved on this device</small><button style="float:right" onclick="sywDeleteAnnouncement(${i})">Delete</button></div>`).join(''):'<div class="syw-muted">No announcements saved yet.</div>';
+}
+function sywDeleteAnnouncement(i){const a=sywRead('announcements',[]);a.splice(i,1);sywWrite('announcements',a);sywRenderAnnouncements()}
+function sywEnableQueueNotifications(){
+  if('Notification'in window)Notification.requestPermission();
+  document.getElementById('sywQueueMessage').textContent='Queue checking is active while this page remains open. Update the “Now serving” field when the display changes.';
+  if(SYW.queueTimer)clearInterval(SYW.queueTimer);SYW.queueTimer=setInterval(sywCheckToken,2500);
+}
+function sywCheckToken(){
+  const mine=document.getElementById('sywMyToken').value.trim().toLowerCase();
+  const now=document.getElementById('sywCurrentToken').value.trim().toLowerCase();
+  const status=document.getElementById('sywQueueStatus'),msg=document.getElementById('sywQueueMessage');
+  if(!mine||!now){status.textContent='Enter both tokens';return;}
+  if(mine===now){
+    status.textContent='Your turn';msg.textContent='Your token '+mine+' is being served. Please proceed to the counter.';
+    if(!SYW.queueAlerted){SYW.queueAlerted=true;sywVibrate('emergency');sywBrowserNotify('Your token is being called','Please proceed to the counter.');}
+  }else{status.textContent='Waiting';msg.textContent='Now serving '+now+'. Your token is '+mine+'.';SYW.queueAlerted=false;}
+}
+function sywAddPlace(){
+  const n=document.getElementById('sywPlaceName').value.trim(),a=document.getElementById('sywPlaceArea').value.trim(),support=document.getElementById('sywPlaceSupport').value;
+  if(!n||!a){alert('Enter both the place name and area/address.');return;}
+  const places=sywRead('places',[]);places.unshift({n,a,support,at:new Date().toISOString()});sywWrite('places',places);
+  document.getElementById('sywPlaceName').value='';document.getElementById('sywPlaceArea').value='';sywRenderPlaces();
+}
+function sywRenderPlaces(){
+  const box=document.getElementById('sywPlaces');if(!box)return;const q=(document.getElementById('sywPlaceSearch')?.value||'').toLowerCase();
+  const all=sywRead('places',[]),places=all.map((x,i)=>({...x,_index:i})).filter(x=>(x.n+' '+x.a+' '+x.support).toLowerCase().includes(q));
+  box.innerHTML=places.length?places.map(x=>`<div class="syw-item"><b>${sywEsc(x.n)}</b><br>${sywEsc(x.a)}<br><span class="syw-pill">${sywEsc(x.support)}</span><br><small>User-submitted · not independently verified</small><button style="float:right" onclick="sywDeletePlace(${x._index})">Remove</button></div>`).join(''):'<div class="syw-muted">No matching saved places.</div>';
+}
+function sywDeletePlace(i){const places=sywRead('places',[]);places.splice(i,1);sywWrite('places',places);sywRenderPlaces()}
+function sywSaveAccessibilityProfile(){
+  const profile={language:document.getElementById('sywPrefLanguage').value,method:document.getElementById('sywPrefMethod').value,vibration:document.getElementById('sywPrefVibration').value,caption:document.getElementById('sywPrefCaption').value};
+  sywWrite('accessibility_profile',profile);document.getElementById('sywProfileSaved').textContent=' Saved on this device.';
+  const size=document.getElementById('sywCaptionSize');if(size){size.value=profile.caption;sywApplyCaptionStyle();}
+}
+function sywLoadAccessibilityProfile(){
+  const p=sywRead('accessibility_profile',null);if(!p)return;
+  for(const [id,val] of [['sywPrefLanguage',p.language],['sywPrefMethod',p.method],['sywPrefVibration',p.vibration],['sywPrefCaption',p.caption]]){const e=document.getElementById(id);if(e)e.value=val;}
+  const size=document.getElementById('sywCaptionSize');if(size&&p.caption){size.value=p.caption;sywApplyCaptionStyle();}
+}
+function sywInitEnhancements(){
+  SYW.captions=sywRead('captions',[]);sywRenderTranscript();sywRenderAwareness();sywRenderAnnouncements();sywRenderPlaces();sywInitQuickBoard();sywLoadAccessibilityProfile();sywApplyCaptionStyle();
+  addEventListener('beforeunload',sywStopSoundMonitor);
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',sywInitEnhancements);else sywInitEnhancements();
+
 </script>
 </body></html>
