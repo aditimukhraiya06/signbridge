@@ -162,8 +162,9 @@ main{position:relative;z-index:1!important}
 <textarea id="out" rows="3"></textarea>
 <div class="row"><button onclick="out.value+=' '">Space</button><button onclick="out.value=out.value.slice(0,-1)">Backspace</button><button onclick="out.value=''">Clear</button><button class="pri" onclick="say(out.value)">Speak</button><button onclick="addLog('Me',out.value);out.value=''">Add to chat</button></div>
 <div class="row"><label>Speed <input type="range" id="rate" min=".5" max="1.5" step=".1" value="1" style="width:110px"></label><select id="voice" style="width:auto"></select></div></div>
-<div class="card"><b>🧠 Teach the app your signs</b><p style="font-size:14px;margin:4px 0">Start the camera, pick a letter, press Record and hold that sign steady while tilting your hand slightly. Repeat for each letter. Samples stay on this device, separately for ASL and ISL.</p><div class="row"><select id="tl" style="width:90px"></select><button class="pri" onclick="guided()">🎓 Teach A–Z (guided)</button><button onclick="startTeach()">⏺ Record one letter</button><button onclick="clearTeach()">Clear</button></div><div id="tc" style="font-size:13px;color:var(--mut)"></div><hr style="border:0;border-top:1px solid var(--line);margin:10px 0"><b>Teach a word (with movement)</b><p style="font-size:14px;margin:4px 0">Start the camera, tap a word (or type your own) and press Record. The app records 3 takes in a row: sign the full movement each time. This is how movement words like HELP or CRY become reliable.</p><div id="twchips" class="row"></div><div class="row"><input id="tw" placeholder="Word, e.g. help" style="flex:1"><button class="pri" onclick="startTeachWord()">⏺ Record word</button><button onclick="clearWords()">Clear words</button></div><div id="twc" style="font-size:13px;color:var(--mut)"></div><div id="twl" style="font-size:13px;color:var(--mut)"></div><div id="bw" style="margin-top:10px"></div></div>
-</div></div>
+<div class="card"><b>🧠 Teach the app your signs</b><p style="font-size:14px;margin:4px 0">Start the camera, pick a letter, press Record and hold that sign steady while tilting your hand slightly. Repeat for each letter. Samples stay on this device, separately for ASL and ISL.</p><div class="row"><select id="tl" style="width:90px"></select><button class="pri" onclick="guided()">🎓 Teach A–Z (guided)</button><button onclick="startTeach()">⏺ Record one letter</button><button onclick="clearTeach()">Clear</button></div><div id="tc" style="font-size:13px;color:var(--mut)"></div><hr style="border:0;border-top:1px solid var(--line);margin:10px 0"><b>Optional: teach an additional custom word</b><p style="font-size:14px;margin:4px 0">Words listed in the built-in trained vocabulary below are recognised automatically in Words mode. You do not need to teach them again. Use this panel only to add extra words that are not included in the trained model.</p><div id="twchips" class="row"></div><div class="row"><input id="tw" placeholder="Word, e.g. help" style="flex:1"><button class="pri" onclick="startTeachWord()">⏺ Record word</button><button onclick="clearWords()">Clear words</button></div><div id="twc" style="font-size:13px;color:var(--mut)"></div><div id="twl" style="font-size:13px;color:var(--mut)"></div><div id="bw" style="margin-top:10px"></div></div>
+<div class="card"><b>Hearing person</b><div class="row"><button id="bM" onclick="mic()">🎤 Start listening</button></div>
+<div class="note" id="noteM"></div></div></div></div>
 <div class="card"><b>Text to fingerspelling</b><input id="fs" placeholder="Type a word" oninput="fspell()"><div id="fsOut" class="row"></div>
 <div class="note">Fingerspelling cards only. Full ASL/ISL sentence translation is not implemented; this does not substitute signs word by word.</div></div>
 
@@ -240,7 +241,7 @@ const LN={ASL:'AMERICAN SIGN LANGUAGE',ISL:'INDIAN SIGN LANGUAGE'};
 function go(t){document.querySelectorAll('section').forEach(s=>s.classList.toggle('on',s.id===t));document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));stopCam();if(t==='nav')initMap();scrollTo(0,0)}
 const net=()=>$('#net').textContent=navigator.onLine?'Online':'Offline: emergency tools still work';addEventListener('online',net);addEventListener('offline',net);net();
 $('#lang').value=S.lang;$('#lang').onchange=e=>{S.lang=e.target.value;save();langNote();setTarget();renderChart();tcount();twList();loadBI()};
-function langNote(){$('#noteC').textContent=S.lang==='ASL'?'Hold your hand up with the palm toward the camera and all fingers inside the frame. Words mode uses a small trained model plus any words you teach.':'Show the ISL sign from the photo with both hands fully inside the frame. Words mode uses a small trained model plus any words you teach.';$('#alphaTitle').textContent=S.lang+' alphabet pictures';$('#alphaNote').textContent=S.lang==='ASL'?'J and Z are movement signs; the picture shows their handshape.':'Real ISL photos. Most ISL letters use two hands.';if($('#howto'))$('#howto').innerHTML=sgImg('B');renderChart()}langNote();
+function langNote(){$('#noteC').textContent=S.lang==='ASL'?'Hold your hand up with the palm toward the camera and all fingers inside the frame. Select Words to automatically recognise the ASL model vocabulary; teaching extra words is optional.':'Show the ISL sign with both hands fully inside the frame. Select Words to automatically recognise the ISL model vocabulary; teaching extra words is optional.';$('#alphaTitle').textContent=S.lang+' alphabet pictures';$('#alphaNote').textContent=S.lang==='ASL'?'J and Z are movement signs; the picture shows their handshape.':'Real ISL photos. Most ISL letters use two hands.';if($('#howto'))$('#howto').innerHTML=sgImg('B');renderChart()}langNote();
 
 /* ---- speech ---- */
 function say(t){if(!t||!window.speechSynthesis)return alert('Text to speech is not supported on this device.');speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.rate=+$('#rate').value;const v=speechSynthesis.getVoices().find(v=>v.name===$('#voice').value);if(v)u.voice=v;speechSynthesis.speak(u)}
@@ -248,14 +249,11 @@ function voices(){const s=$('#voice');s.innerHTML=speechSynthesis.getVoices().ma
 if(window.speechSynthesis){speechSynthesis.onvoiceschanged=voices;voices()}
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec;
 function listen(cb,btn){if(!SR){return alert('Speech recognition is not supported in this browser. Try Chrome.')}
-if(rec){try{rec.stop()}catch(_){}if(btn)btn.textContent='🎤 Start listening';return}
-const r=new SR();rec=r;r.lang=S.lang==='ISL'?'en-IN':'en-US';r.interimResults=false;r.continuous=false;const nm=$('#noteM');if(nm)nm.textContent='';
-r.onresult=e=>cb(e.results[e.results.length-1][0].transcript);
-r.onerror=e=>{if(e.error==='aborted')return;if(nm)nm.textContent=e.error==='not-allowed'||e.error==='service-not-allowed'?'Microphone permission denied. Allow it in browser settings.':e.error==='no-speech'?'No speech heard. Tap Start listening and try again.':'Speech error: '+e.error};
-r.onend=()=>{if(rec===r)rec=null;if(btn)btn.textContent='🎤 Start listening'};
-try{r.start();if(btn)btn.textContent='⏹ Stop'}catch(e){if(rec===r)rec=null;if(nm)nm.textContent='Speech error: '+e.message}}
+if(rec){rec.stop();rec=null;return}rec=new SR();rec.lang=S.lang==='ISL'?'en-IN':'en-US';rec.interimResults=false;
+rec.onresult=e=>cb(e.results[e.results.length-1][0].transcript);rec.onerror=e=>{$('#noteM').textContent=e.error==='not-allowed'?'Microphone permission denied. Allow it in browser settings.':'Speech error: '+e.error};rec.onend=()=>{rec=null;if(btn)btn.textContent='🎤 Start listening'};rec.start();if(btn)btn.textContent='⏹ Stop'}
+function mic(){listen(t=>addLog('Them',t),$('#bM'))}
 function addLog(w,t){t=(t||'').trim();if(!t)return;S.hist.push({w,t,at:new Date().toISOString()});save();renderLog()}
-function renderLog(){const lg=$('#log');if(!lg)return;lg.innerHTML=S.hist.length?S.hist.map(h=>`<div><small>${new Date(h.at).toLocaleTimeString()}</small> <b>${h.w}:</b> ${h.t.replace(/</g,'&lt;')}</div>`).join(''):'No messages yet.'}renderLog();
+function renderLog(){$('#log').innerHTML=S.hist.length?S.hist.map(h=>`<div><small>${new Date(h.at).toLocaleTimeString()}</small> <b>${h.w}:</b> ${h.t.replace(/</g,'&lt;')}</div>`).join(''):'No messages yet.'}renderLog();
 function exportLog(){const b=new Blob([S.hist.map(h=>`[${h.at}] ${h.w}: ${h.t}`).join('\n')],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='signbridge-transcript.txt';a.click()}
 
 /* ---- hand tracking + classifiers ---- */
@@ -303,104 +301,16 @@ if(k&&k.label&&(S.lang==='ISL'||k.conf>.8||!t||!t.label))return{...(t||{}),...k}
 return t||{label:null,conf:0,top:k?k.top:''}}
 let HL=null,stream=null,activeCamera=null,raf=0,lastT=-1;
 let forceCPU=false,lastChip='';
-async function initHL(){
-if(HL)return HL;
-const V='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';
-const status=()=>activeCamera?$('#st'+activeCamera):null;
-const timed=async(promise,label,ms)=>{
-let timer;
-try{
-return await Promise.race([
-promise,
-new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error(label+' timed out after '+Math.round(ms/1000)+' seconds. Check your internet connection, then refresh the page.')),ms)})
-]);
-}finally{clearTimeout(timer)}
-};
-const st=status();
-if(st)st.textContent='Loading MediaPipe library…';
-const m=await timed(import(V+'/+esm'),'MediaPipe library download',20000);
-if(st)st.textContent='Loading camera support files…';
-const f=await timed(m.FilesetResolver.forVisionTasks(V+'/wasm'),'MediaPipe camera support files',20000);
-if(st)st.textContent='Loading hand model (CPU mode)…';
-HL=await timed(m.HandLandmarker.createFromOptions(f,{
-baseOptions:{
-modelAssetPath:'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',
-delegate:'CPU'
-},
-runningMode:'VIDEO',
-numHands:2,
-minHandDetectionConfidence:.3,
-minHandPresenceConfidence:.3,
-minTrackingConfidence:.3
-}),'Hand model download / initialization',45000);
-return HL;
-}
-async function toggleCam(v){
-if(activeCamera===v){stopCam();return}
-stopCam();
-const st=$('#st'+v);
-st.textContent='Requesting camera access…';
-if(!window.isSecureContext||!navigator.mediaDevices){
-st.textContent='Camera needs https:// or localhost (not file://).';
-return;
-}
-try{
-stream=await navigator.mediaDevices.getUserMedia({
-video:{facingMode:'user',width:{ideal:640},height:{ideal:480}},
-audio:false
-});
-}catch(e){
-st.textContent=e.name==='NotAllowedError'?'Camera permission denied. Allow camera access in the address bar and retry.':
-e.name==='NotFoundError'?'No camera found.':
-e.name==='NotReadableError'?'Camera is in use by another app/tab. Close it and retry.':
-'Camera error: '+e.name+' — '+e.message;
-console.error('getUserMedia error:',e);
-return;
-}
-const vid=$('#v'+v);
-vid.autoplay=true;
-vid.muted=true;
-vid.playsInline=true;
-vid.srcObject=stream;
-try{
-await vid.play();
-if(vid.readyState<2||!vid.videoWidth){
-await new Promise((resolve,reject)=>{
-const timer=setTimeout(()=>reject(new Error('Camera opened, but no video frames arrived. Check that the correct camera is selected and not being used by another app.')),10000);
-const ready=()=>{
-if(vid.videoWidth>0&&vid.videoHeight>0){clearTimeout(timer);resolve();}
-};
-const failed=()=>{
-clearTimeout(timer);
-reject(new Error('The browser could not read video from this camera.'));
-};
-vid.addEventListener('loadeddata',ready,{once:true});
-vid.addEventListener('error',failed,{once:true});
-ready();
-});
-}
-}catch(e){
-if(stream)stream.getTracks().forEach(t=>t.stop());
-stream=null;
-vid.srcObject=null;
-st.textContent='Camera could not start: '+e.message;
-console.error('Video playback error:',e);
-return;
-}
-activeCamera=v;
-$('#b'+v).textContent='Stop camera';
-st.textContent='Camera is on. Loading hand model…';
-try{
-await initHL();
-}catch(e){
-st.textContent='Camera is on, but the hand model failed to load (check internet / ad-blocker): '+e.message;
-console.error('Hand model error:',e);
-return;
-}
-if(activeCamera!==v)return;
-st.textContent='Tracking';
-loop();
-}
+async function initHL(){if(HL)return HL;const V='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';const m=await import(V+'/+esm');const f=await m.FilesetResolver.forVisionTasks(V+'/wasm');
+const mk=d=>m.HandLandmarker.createFromOptions(f,{baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',delegate:d},runningMode:'VIDEO',numHands:2,minHandDetectionConfidence:.3,minHandPresenceConfidence:.3,minTrackingConfidence:.3});
+try{HL=await mk(forceCPU?'CPU':'GPU')}catch(e){HL=await mk('CPU')}return HL}
+async function toggleCam(v){if(activeCamera===v){stopCam();return}stopCam();const st=$('#st'+v);st.textContent='Loading hand model…';
+if(!window.isSecureContext||!navigator.mediaDevices){st.textContent='Camera needs https:// or localhost (not file://).';return}
+try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:640,height:480}})}
+catch(e){st.textContent=e.name==='NotAllowedError'?'Camera permission denied. Allow camera access in the address bar and retry.':e.name==='NotFoundError'?'No camera found.':e.name==='NotReadableError'?'Camera is in use by another app/tab. Close it and retry.':'Camera error: '+e.message;return}
+const vid=$('#v'+v);vid.srcObject=stream;try{await vid.play()}catch(e){}activeCamera=v;$('#b'+v).textContent='Stop camera';st.textContent='Camera on. Loading hand model…';
+try{await initHL()}catch(e){st.textContent='Camera is on, but the hand model failed to load (check internet / ad-blocker): '+e.message;return}
+if(activeCamera!==v)return;st.textContent='Tracking';loop()}
 function stopCam(){cancelAnimationFrame(raf);if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;if(activeCamera){$('#b'+activeCamera).textContent='Start camera';$('#st'+activeCamera).textContent='Camera off'}activeCamera=null;cand=null;n=0;teach=null;buf=[];lastChip='';RB=[]}
 let cand=null,n=0;
 function loop(){if(!activeCamera)return;try{const vid=$('#v'+activeCamera),cv=$('#c'+activeCamera);
@@ -431,10 +341,12 @@ if(activeCamera!=='C')return;teach={l,n:20,k:0};while(teach){await wait(100);if(
 $('#tc').textContent='✅ Done! J and Z need movement, so they are not included. Try your letters now.';tcount()}
 function clearTeach(){if(confirm('Delete all taught samples for '+S.lang+'?')){SAMP=SAMP.filter(s=>s.lg!==S.lang);localStorage.sbs2=JSON.stringify(SAMP);tcount()}}
 /* word recognition: needs models/<lang>/model.onnx + labels.json from the Colab notebook */
-const WM={},OR='https://cdn.jsdelivr.net/npm/onnxruntime-web@1.18.0/dist/';let buf=[],fr=0,lastW=0,wordBusy=false,wordVotes=[];
-async function loadWords(){const l=S.lang;if(l in WM)return WM[l];WM[l]=null;try{const b='models/'+l.toLowerCase()+'/',lab=await(await fetch(b+'labels.json')).json();
-if(!window.ort){await new Promise((ok,no)=>{const s=document.createElement('script');s.src=OR+'ort.min.js';s.onload=ok;s.onerror=no;document.head.appendChild(s)});ort.env.wasm.wasmPaths=OR}
-WM[l]={labels:lab,sess:await ort.InferenceSession.create(b+'model.onnx')}}catch(e){}return WM[l]}
+const WM={},WERR={},OR='https://cdn.jsdelivr.net/npm/onnxruntime-web@1.18.0/dist/';let buf=[],fr=0,lastW=0,wordBusy=false,wordVotes=[];
+async function loadWords(){const l=S.lang;if(l in WM)return WM[l];WM[l]=null;WERR[l]='Loading '+l+' word model…';try{const b='models/'+l.toLowerCase()+'/',lr=await fetch(b+'labels.json');if(!lr.ok)throw new Error('Could not load '+b+'labels.json (HTTP '+lr.status+').');const lab=await lr.json();if(!Array.isArray(lab)||!lab.length)throw new Error('The '+l+' labels file is empty or invalid.');
+if(!window.ort){await new Promise((ok,no)=>{const s=document.createElement('script');s.src=OR+'ort.min.js';s.onload=ok;s.onerror=()=>no(new Error('ONNX Runtime could not load from the CDN.'));document.head.appendChild(s)});ort.env.wasm.wasmPaths=OR}
+const mr=await fetch(b+'model.onnx',{method:'HEAD'});if(!mr.ok)throw new Error('Could not find '+b+'model.onnx (HTTP '+mr.status+').');const sess=await ort.InferenceSession.create(b+'model.onnx');WM[l]={labels:lab,sess,inputName:sess.inputNames[0],outputName:sess.outputNames[0]};WERR[l]='';
+if(WM[l].inputName!=='seq'||WM[l].outputName!=='logits')console.warn('Model I/O names:',WM[l].inputName,WM[l].outputName);return WM[l]
+}catch(e){WERR[l]=e.message||String(e);console.error('Word model load failed:',l,e);return null}}
 /* same features as ml/extract_landmarks.py: wrist-relative, max-abs scaled, hands ordered left-to-right in the image */
 function wfeat(r){const hs=r.landmarks.map(l=>{const o=l.flatMap(p=>[p.x-l[0].x,p.y-l[0].y,p.z-l[0].z]),m=Math.max(...o.map(Math.abs))+1e-6;return{x:l[0].x,f:o.map(v=>v/m)}}).sort((a,b)=>a.x-b.x);const v=new Float32Array(126);hs.slice(0,2).forEach((q,i)=>v.set(q.f,i*63));return v}
 let WS=JSON.parse(localStorage.sbw||'[]'),RB=[],twN=0;
@@ -455,12 +367,12 @@ async function startTeachWord(){if(activeCamera!=='C')return alert('Start the ca
 for(let k=1;k<=3&&activeCamera==='C';k++){for(let i=3;i>0&&activeCamera==='C';i--){c.textContent='Take '+k+'/3 · get ready to sign "'+w+'" in '+i+'…';await wait(1000)}if(activeCamera!=='C')return;c.textContent='● Take '+k+'/3 · SIGN "'+w+'" NOW (full movement)';await wait(1900);
 const v=vecWin(performance.now()-150,1500);if(!v){c.textContent='Hand not seen in take '+k+'. Keep your hand in view.';continue}WS.push({w,lg:S.lang,v:Array.from(v,x=>+x.toFixed(2))});got++;localStorage.sbw=JSON.stringify(WS);twList()}
 c.textContent=got?'✅ Saved '+got+' takes of "'+w+'". Switch to Words mode and sign it.':'Nothing saved. Keep your hand in view and try again.'}
-function modeHint(){if($('#mode').value==='words')$('#noteC').textContent='Words mode: movement words like HELP or CRY work best when you record them first in “Teach a word” (about 3 times each), then sign the full movement.';else langNote()}
+function modeHint(){if($('#mode').value==='words')$('#noteC').textContent='Words mode: the built-in '+S.lang+' model recognises its listed vocabulary automatically. Keep the full sign movement inside the camera view. Teaching is only for adding extra custom words.';else langNote()}
 function clearWords(){if(confirm('Delete taught words for '+S.lang+'?')){WS=WS.filter(s=>s.lg!==S.lang);localStorage.sbw=JSON.stringify(WS);twList()}}
 async function wordStep(res){const N=activeCamera==='N',L=$(N?'#liveN':'#liveC'),C=$(N?'#confN':'#confC');
 if(++twN%6===0){const h=taughtMatch();if(h){if(h.ok){L.textContent=h.w;C.textContent='Your taught word · match '+Math.round(h.sc*100)+'%';if(Date.now()-lastW>2200){lastW=Date.now();emitWord(h.w,N);RB=[]}return}else C.textContent='Closest taught word: '+h.w+' (distance '+h.d.toFixed(2)+', needs under 0.45). Sign the full movement.'}}
-const m=await loadWords();if(!m){L.textContent='–';C.textContent=WS.some(x=>x.lg===S.lang)?'Sign a word you taught.':'No '+S.lang+' word model. Teach words in the Teach panel.';return}
-buf.push(res&&res.landmarks.length?wfeat(res):null);if(buf.length>90)buf.shift();const fs=buf.filter(Boolean);if(++fr%10||fs.length<20||wordBusy)return;wordBusy=true;try{const T=30,x=new Float32Array(T*126);for(let i=0;i<T;i++)x.set(fs[Math.round(i*(fs.length-1)/(T-1))],i*126);const out=await m.sess.run({seq:new ort.Tensor('float32',x,[1,T,126])});const logits=out.logits.data,mx=Math.max(...logits),e=[...logits].map(v=>Math.exp(v-mx)),sum=e.reduce((a,b)=>a+b,0),p=e.map(v=>v/sum),i=p.indexOf(Math.max(...p)),label=m.labels[i],conf=p[i];wordVotes.push({label,conf,at:Date.now()});wordVotes=wordVotes.filter(v=>Date.now()-v.at<4500);const vote={};for(const v of wordVotes)vote[v.label]=(vote[v.label]||0)+v.conf;const best=Object.entries(vote).sort((a,b)=>b[1]-a[1])[0];const smooth=best?best[1]/wordVotes.length:conf;L.textContent=best?best[0]:label;C.textContent=Math.round(smooth*100)+'% ('+S.lang+' word model • '+m.labels.length+' trained words)';if(best&&smooth>=.48&&Date.now()-lastW>2500){lastW=Date.now();if(N){propose(navKey(best[0]),'You signed "'+best[0]+'".');buf=[];wordVotes=[];return}$('#out').value+=($('#out').value&&!$('#out').value.endsWith(' ')?' ':'')+best[0]+' ';buf=[];wordVotes=[]}}catch(e){C.textContent='Word model error: '+e.message}finally{wordBusy=false}}
+const m=await loadWords();if(!m){L.textContent='–';C.textContent=WERR[S.lang]||('No '+S.lang+' word model is available. Check the models/'+S.lang.toLowerCase()+'/ files.');return}
+buf.push(res&&res.landmarks.length?wfeat(res):null);if(buf.length>90)buf.shift();const fs=buf.filter(Boolean);if(++fr%10||fs.length<20||wordBusy)return;wordBusy=true;try{const T=30,x=new Float32Array(T*126);for(let i=0;i<T;i++)x.set(fs[Math.round(i*(fs.length-1)/(T-1))],i*126);const out=await m.sess.run({[m.inputName]:new ort.Tensor('float32',x,[1,T,126])});const logits=out[m.outputName].data,mx=Math.max(...logits),e=[...logits].map(v=>Math.exp(v-mx)),sum=e.reduce((a,b)=>a+b,0),p=e.map(v=>v/sum),i=p.indexOf(Math.max(...p)),label=m.labels[i],conf=p[i];wordVotes.push({label,conf,at:Date.now()});wordVotes=wordVotes.filter(v=>Date.now()-v.at<4500);const vote={};for(const v of wordVotes)vote[v.label]=(vote[v.label]||0)+v.conf;const best=Object.entries(vote).sort((a,b)=>b[1]-a[1])[0];const smooth=best?best[1]/wordVotes.length:conf;L.textContent=best?best[0]:label;C.textContent=Math.round(smooth*100)+'% ('+S.lang+' word model • '+m.labels.length+' trained words)';if(best&&smooth>=.48&&Date.now()-lastW>2500){lastW=Date.now();if(N){propose(navKey(best[0]),'You signed "'+best[0]+'".');buf=[];wordVotes=[];return}$('#out').value+=($('#out').value&&!$('#out').value.endsWith(' ')?' ':'')+best[0]+' ';buf=[];wordVotes=[]}}catch(e){C.textContent='Word model error: '+e.message}finally{wordBusy=false}}
 /* ---- text to fingerspelling ---- */
 function fspell(){$('#fsOut').innerHTML=[...$('#fs').value.toUpperCase()].filter(c=>c!==' ').map(c=>`<div class="card" style="width:140px;margin:0;text-align:center" title="${DESC[c]||''}">${sgImg(c)}<div class="big" style="font-size:32px;min-height:0">${c.replace(/</g,'')}</div></div>`).join('')}
 
